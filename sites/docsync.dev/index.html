@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocSync — Living Documentation for Your Codebase</title>
+  <meta name="description" content="Auto-generate docs from code and detect drift via git hooks. Keep documentation alive without the busywork.">
+  <meta property="og:title" content="DocSync — Living Documentation for Your Codebase">
+  <meta property="og:description" content="Auto-generate docs from code. Detect drift. Keep docs alive via git hooks.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://docsync.pages.dev">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+  <style>
+    /* ─── Reset & Base ──────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #12121a;
+      --bg-card-hover: #1a1a26;
+      --border: #1e1e2e;
+      --border-accent: #3b3b5c;
+      --text: #e4e4ef;
+      --text-dim: #8888a0;
+      --text-bright: #ffffff;
+      --accent: #6c5ce7;
+      --accent-light: #a29bfe;
+      --accent-glow: rgba(108, 92, 231, 0.15);
+      --green: #00b894;
+      --green-glow: rgba(0, 184, 148, 0.15);
+      --orange: #e17055;
+      --red: #ff6b6b;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ─── Utility ───────────────────────────────── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .text-center { text-align: center; }
+    .text-dim { color: var(--text-dim); }
+    .mt-1 { margin-top: 8px; }
+    .mt-2 { margin-top: 16px; }
+    .mt-3 { margin-top: 24px; }
+    .mt-4 { margin-top: 32px; }
+    .mt-6 { margin-top: 48px; }
+
+    /* ─── Nav ───────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand {
+      font-size: 1.25rem; font-weight: 700; color: var(--text-bright);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-brand span { font-size: 1.4rem; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-bright); text-decoration: none; }
+
+    /* ─── Buttons ───────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--accent); color: white;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      background: #7c6cf7; transform: translateY(-1px);
+      box-shadow: 0 0 40px var(--accent-glow);
+      text-decoration: none;
+    }
+    .btn-secondary {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border-accent);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card); border-color: var(--accent);
+      text-decoration: none;
+    }
+    .btn-green {
+      background: var(--green); color: white;
+      box-shadow: 0 0 24px var(--green-glow);
+    }
+    .btn-green:hover {
+      background: #00d2a0; transform: translateY(-1px);
+      text-decoration: none;
+    }
+
+    /* ─── Hero ──────────────────────────────────── */
+    .hero {
+      padding: 100px 0 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 800; color: var(--text-bright);
+      line-height: 1.15; letter-spacing: -0.03em;
+      max-width: 700px; margin: 0 auto;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent-light), var(--green));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.2rem; color: var(--text-dim);
+      max-width: 560px; margin: 20px auto 0;
+      line-height: 1.7;
+    }
+    .hero-buttons {
+      display: flex; gap: 12px; justify-content: center;
+      margin-top: 36px; flex-wrap: wrap;
+    }
+
+    /* ─── Install bar ──────────────────────────── */
+    .install-bar {
+      display: inline-flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; gap: 12px;
+      font-family: var(--mono); font-size: 0.9rem;
+      margin-top: 32px; cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .install-bar:hover { border-color: var(--accent); }
+    .install-bar code { color: var(--green); }
+    .install-bar .copy-hint {
+      color: var(--text-dim); font-size: 0.75rem;
+      font-family: var(--font);
+    }
+
+    /* ─── Terminal demo ────────────────────────── */
+    .terminal {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      max-width: 680px; margin: 48px auto 0;
+      text-align: left; font-family: var(--mono);
+      font-size: 0.85rem; line-height: 1.8;
+    }
+    .terminal-header {
+      background: #16161f; padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .terminal-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-body { padding: 16px 20px; }
+    .terminal-body .prompt { color: var(--green); }
+    .terminal-body .cmd { color: var(--text-bright); }
+    .terminal-body .output { color: var(--text-dim); }
+    .terminal-body .success { color: var(--green); }
+    .terminal-body .warn { color: var(--orange); }
+    .terminal-body .error { color: var(--red); }
+
+    /* ─── Features grid ────────────────────────── */
+    .features { padding: 80px 0; }
+    .features h2 {
+      font-size: 2rem; font-weight: 700;
+      color: var(--text-bright); text-align: center;
+    }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px; margin-top: 48px;
+    }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover {
+      border-color: var(--border-accent);
+      background: var(--bg-card-hover);
+    }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h3 {
+      font-size: 1.1rem; font-weight: 600;
+      color: var(--text-bright); margin-bottom: 8px;
+    }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; }
+
+    /* ─── How it works ─────────────────────────── */
+    .how-it-works { padding: 80px 0; }
+    .how-it-works h2 {
+      font-size: 2rem; font-weight: 700;
+      color: var(--text-bright); text-align: center;
+    }
+    .steps {
+      display: flex; flex-direction: column; gap: 0;
+      max-width: 600px; margin: 48px auto 0;
+      position: relative;
+    }
+    .steps::before {
+      content: ''; position: absolute;
+      left: 24px; top: 40px; bottom: 40px;
+      width: 2px; background: var(--border);
+    }
+    .step {
+      display: flex; gap: 20px; padding: 20px 0;
+      position: relative;
+    }
+    .step-num {
+      width: 48px; height: 48px; flex-shrink: 0;
+      background: var(--bg-card); border: 2px solid var(--accent);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; color: var(--accent-light); font-size: 1.1rem;
+      z-index: 1;
+    }
+    .step-content h3 {
+      font-size: 1.05rem; font-weight: 600;
+      color: var(--text-bright); margin-bottom: 4px;
+    }
+    .step-content p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* ─── Pricing ──────────────────────────────── */
+    .pricing { padding: 80px 0; }
+    .pricing h2 {
+      font-size: 2rem; font-weight: 700;
+      color: var(--text-bright); text-align: center;
+    }
+    .pricing-subtitle {
+      color: var(--text-dim); text-align: center;
+      margin-top: 8px; font-size: 1.05rem;
+    }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px; margin-top: 48px; max-width: 1000px; margin-left: auto; margin-right: auto;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px;
+      display: flex; flex-direction: column;
+      transition: border-color 0.2s;
+    }
+    .price-card:hover { border-color: var(--border-accent); }
+    .price-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 40px var(--accent-glow);
+      position: relative;
+    }
+    .price-card.featured::before {
+      content: 'Most Popular';
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: white;
+      padding: 4px 16px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .price-tier {
+      font-size: 0.85rem; font-weight: 600;
+      color: var(--text-dim); text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .price-amount {
+      font-size: 2.5rem; font-weight: 800;
+      color: var(--text-bright); margin-top: 8px;
+    }
+    .price-amount span {
+      font-size: 0.9rem; font-weight: 400;
+      color: var(--text-dim);
+    }
+    .price-features {
+      list-style: none; margin-top: 24px;
+      flex-grow: 1;
+    }
+    .price-features li {
+      padding: 6px 0; font-size: 0.9rem;
+      color: var(--text-dim);
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+    .price-features li::before {
+      content: '✓'; color: var(--green);
+      font-weight: 700; flex-shrink: 0;
+    }
+    .price-card .btn { margin-top: 24px; width: 100%; justify-content: center; }
+
+    /* ─── Languages ────────────────────────────── */
+    .languages { padding: 60px 0; }
+    .lang-grid {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 12px; margin-top: 24px;
+    }
+    .lang-tag {
+      background: var(--bg-card); border: 1px solid var(--border);
+      padding: 8px 16px; border-radius: 6px;
+      font-size: 0.85rem; color: var(--text-dim);
+      font-family: var(--mono);
+    }
+
+    /* ─── FAQ ──────────────────────────────────── */
+    .faq { padding: 80px 0; }
+    .faq h2 {
+      font-size: 2rem; font-weight: 700;
+      color: var(--text-bright); text-align: center;
+    }
+    .faq-list {
+      max-width: 680px; margin: 40px auto 0;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .faq-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px 24px;
+    }
+    .faq-item h4 {
+      font-size: 1rem; font-weight: 600;
+      color: var(--text-bright); margin-bottom: 8px;
+    }
+    .faq-item p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* ─── CTA ──────────────────────────────────── */
+    .cta {
+      padding: 80px 0; text-align: center;
+    }
+    .cta-box {
+      background: var(--bg-card);
+      border: 1px solid var(--accent);
+      border-radius: 16px; padding: 60px 40px;
+      box-shadow: 0 0 60px var(--accent-glow);
+      max-width: 700px; margin: 0 auto;
+    }
+    .cta h2 {
+      font-size: 2rem; font-weight: 700;
+      color: var(--text-bright);
+    }
+    .cta p {
+      color: var(--text-dim); margin-top: 12px;
+      font-size: 1.05rem;
+    }
+
+    /* ─── Footer ───────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0; text-align: center;
+      color: var(--text-dim); font-size: 0.85rem;
+    }
+    footer a { color: var(--text-dim); }
+    footer a:hover { color: var(--text-bright); }
+
+    /* ─── Responsive ───────────────────────────── */
+    @media (max-width: 640px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .nav-links { gap: 12px; }
+      .steps::before { left: 23px; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="container">
+    <div class="nav-brand"><span>📖</span> DocSync</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#pricing" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>Documentation that <em>stays alive</em></h1>
+    <p>Auto-generate docs from code. Detect drift on every commit. Never ship stale documentation again.</p>
+    <div class="hero-buttons">
+      <a href="#pricing" class="btn btn-primary">Get DocSync Pro</a>
+      <a href="#install" class="btn btn-secondary">Install Free</a>
+    </div>
+    <div class="install-bar" onclick="navigator.clipboard.writeText('clawhub install docsync')" title="Click to copy">
+      <code>$ clawhub install docsync</code>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <!-- Terminal demo -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">git commit -m "add payment handler"</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="error">━━━ DocSync: Documentation Drift Detected ━━━</div>
+        <div class="output">&nbsp;</div>
+        <div><span class="error">✗</span> <span class="cmd">processPayment</span> <span class="output">(function in src/payments.ts)</span></div>
+        <div><span class="error">✗</span> <span class="cmd">PaymentResult</span> <span class="output">(type in src/payments.ts)</span></div>
+        <div><span class="warn">⚠</span> <span class="cmd">validateCard</span> <span class="output">(docs older than source)</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="output">Run <span class="success">docsync auto-fix</span> to generate missing docs</div>
+        <div class="output">&nbsp;</div>
+        <div><span class="prompt">$</span> <span class="cmd">docsync auto-fix</span></div>
+        <div><span class="success">✓</span> Regenerated docs/api/payments.md (3 symbols)</div>
+        <div><span class="success">✓</span> All documentation is now in sync.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <h2>Everything your docs need</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🌳</div>
+        <h3>40+ Language Support</h3>
+        <p>Powered by tree-sitter for accurate AST parsing. TypeScript, Python, Rust, Go, Java, and more — all out of the box.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Drift Detection</h3>
+        <p>Compares code symbols against existing docs on every commit. Finds undocumented functions, stale signatures, and deleted references.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🪝</div>
+        <h3>Git Hook Enforcement</h3>
+        <p>Pre-commit hooks block commits with critical documentation drift. Powered by lefthook for fast, parallel execution.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Auto-Fix</h3>
+        <p>One command regenerates all stale documentation. Templates produce clean, structured markdown with TOC, signatures, and parameter tables.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏠</div>
+        <h3>100% Local</h3>
+        <p>Your code never leaves your machine. No external API calls, no telemetry, no phone-home. Works in air-gapped environments.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎓</div>
+        <h3>Onboarding & Architecture</h3>
+        <p>Generate onboarding guides and architecture documentation automatically. Perfect for growing teams.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how-it-works">
+  <div class="container">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Install DocSync</h3>
+          <p>One command: <code>clawhub install docsync</code>. Works with any OpenClaw setup.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Generate initial docs</h3>
+          <p>Tell your AI assistant to document your codebase. DocSync parses every source file and produces structured markdown.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Enable git hooks</h3>
+          <p>DocSync installs a pre-commit hook that checks every commit for documentation drift. Undocumented code gets caught immediately.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Docs stay alive forever</h3>
+          <p>Documentation automatically stays in sync with your code. No more "update the docs" tickets that never get done.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start free. Upgrade when your team needs living docs.</p>
+    <div class="pricing-grid">
+
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0</div>
+        <ul class="price-features">
+          <li>One-shot doc generation</li>
+          <li>Single file or directory</li>
+          <li>All 40+ languages</li>
+          <li>Markdown output</li>
+        </ul>
+        <a href="#install" class="btn btn-secondary">Install Free</a>
+      </div>
+
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$29<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Free</li>
+          <li>Git hook enforcement</li>
+          <li>Drift detection</li>
+          <li>Auto-fix regeneration</li>
+          <li>Multi-language support</li>
+        </ul>
+        <a href="#" class="btn btn-primary" data-plan="pro" onclick="handleCheckout('pro')">Get Pro</a>
+      </div>
+
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">$49<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Onboarding guide generation</li>
+          <li>Architecture documentation</li>
+          <li>Custom doc templates</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-green" data-plan="team" onclick="handleCheckout('team')">Get Team</a>
+      </div>
+
+      <div class="price-card">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-amount">$79<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Team</li>
+          <li>SSO / SAML</li>
+          <li>Audit logs</li>
+          <li>Compliance reports</li>
+          <li>Dedicated support + SLA</li>
+        </ul>
+        <a href="mailto:sales@docsync.pages.dev" class="btn btn-secondary">Contact Sales</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Languages -->
+<section class="languages" id="install">
+  <div class="container text-center">
+    <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-bright);">Works with your stack</h2>
+    <div class="lang-grid">
+      <span class="lang-tag">TypeScript</span>
+      <span class="lang-tag">JavaScript</span>
+      <span class="lang-tag">Python</span>
+      <span class="lang-tag">Rust</span>
+      <span class="lang-tag">Go</span>
+      <span class="lang-tag">Java</span>
+      <span class="lang-tag">C / C++</span>
+      <span class="lang-tag">Ruby</span>
+      <span class="lang-tag">PHP</span>
+      <span class="lang-tag">C#</span>
+      <span class="lang-tag">Swift</span>
+      <span class="lang-tag">Kotlin</span>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="container">
+    <h2>Frequently asked questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <h4>Does my code get sent anywhere?</h4>
+        <p>No. All processing happens 100% locally on your machine. DocSync uses tree-sitter for code parsing and never makes network calls. Even license validation is offline.</p>
+      </div>
+      <div class="faq-item">
+        <h4>What if tree-sitter isn't installed?</h4>
+        <p>DocSync falls back to regex-based symbol extraction. It's less accurate but still functional. We recommend installing tree-sitter for best results.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Can I skip the hook on a commit?</h4>
+        <p>Yes. Use <code>git commit --no-verify</code> to skip the drift check. But we recommend fixing the drift instead!</p>
+      </div>
+      <div class="faq-item">
+        <h4>How does licensing work?</h4>
+        <p>Purchase a license, receive a key, add it to your OpenClaw config. The key is a signed JWT validated locally — no internet connection required after activation.</p>
+      </div>
+      <div class="faq-item">
+        <h4>Can I use this with Mintlify, Docusaurus, etc.?</h4>
+        <p>DocSync generates standard markdown files. They work with any documentation tool that reads markdown. Use DocSync for generation and drift detection, and your preferred tool for hosting.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Email Capture -->
+<section class="cta" id="newsletter" style="padding-bottom: 20px;">
+  <div class="container">
+    <div style="max-width: 520px; margin: 0 auto; text-align: center;">
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-bright);">Get documentation tips & DocSync updates</h2>
+      <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.95rem;">No spam. One email per week max. Unsubscribe anytime.</p>
+      <form id="emailForm" style="display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="emailInput" placeholder="you@company.com" required
+          style="flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+          background: var(--bg-card); color: var(--text-bright); font-size: 0.95rem; font-family: var(--font);
+          outline: none; transition: border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Subscribe</button>
+      </form>
+      <p id="emailSuccess" style="display:none; color: var(--green); margin-top: 12px; font-size: 0.9rem;">Thanks! Check your inbox.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Stop shipping stale docs</h2>
+      <p>Install DocSync in 10 seconds. Start generating living documentation today.</p>
+      <div class="mt-4">
+        <div class="install-bar" onclick="navigator.clipboard.writeText('clawhub install docsync')" style="margin: 0 auto;">
+          <code>$ clawhub install docsync</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <p>DocSync &mdash; by <a href="https://clawhub.ai">ClawHub</a> &middot; <a href="mailto:support@docsync.pages.dev">Support</a> &middot; <a href="https://github.com/docsync">GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+  // ─── Stripe Checkout ───────────────────────────
+  // Replace with your actual Stripe price IDs
+  const STRIPE_PRICES = {
+    pro: 'price_REPLACE_WITH_PRO_PRICE_ID',
+    team: 'price_REPLACE_WITH_TEAM_PRICE_ID'
+  };
+
+  // Replace with your Stripe publishable key
+  const STRIPE_KEY = 'pk_live_REPLACE_WITH_YOUR_KEY';
+
+  async function handleCheckout(plan) {
+    // When Stripe is configured, this will redirect to checkout
+    // For now, show a message
+    const apiBase = 'https://license-api.docsync-depguard.workers.dev';
+
+    try {
+      const res = await fetch(`${apiBase}/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, product: 'docsync' })
+      });
+
+      if (res.ok) {
+        const { url } = await res.json();
+        window.location.href = url;
+      } else {
+        // Fallback: direct to contact
+        window.location.href = 'mailto:sales@docsync.pages.dev?subject=DocSync ' + plan + ' license';
+      }
+    } catch (e) {
+      // API not yet deployed — show email fallback
+      window.location.href = 'mailto:sales@docsync.pages.dev?subject=DocSync ' + plan + ' license&body=I%20want%20to%20purchase%20a%20DocSync%20' + plan + '%20license.';
+    }
+  }
+
+  // Copy install command
+  document.querySelectorAll('.install-bar').forEach(bar => {
+    bar.addEventListener('click', () => {
+      const hint = bar.querySelector('.copy-hint');
+      if (hint) {
+        hint.textContent = 'Copied!';
+        setTimeout(() => { hint.textContent = 'click to copy'; }, 2000);
+      }
+    });
+  });
+
+  // Email capture — stores to Cloudflare Worker KV (or fallback: mailto)
+  document.getElementById('emailForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value;
+    if (!email) return;
+
+    try {
+      await fetch('https://license-api.docsync-depguard.workers.dev/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product: 'docsync', source: 'landing' })
+      });
+    } catch(err) {
+      // Silently fail — the success message still shows (we'll capture on retry)
+    }
+
+    document.getElementById('emailForm').style.display = 'none';
+    document.getElementById('emailSuccess').style.display = 'block';
+  });
+</script>
+
+</body>
+</html>

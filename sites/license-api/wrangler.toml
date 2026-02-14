@@ -1,0 +1,23 @@
+name = "license-api"
+main = "src/worker.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+# Set these in Cloudflare dashboard or via wrangler secret
+# STRIPE_SECRET_KEY = "sk_live_..."
+# STRIPE_WEBHOOK_SECRET = "whsec_..."
+# JWT_SECRET = "your-signing-secret"
+# ADMIN_SECRET = "your-admin-secret-for-subscriber-list"
+
+# Products and their Stripe price IDs
+# DOCSYNC_PRO_PRICE = "price_..."
+# DOCSYNC_TEAM_PRICE = "price_..."
+# DEPGUARD_PRO_PRICE = "price_..."
+# DEPGUARD_TEAM_PRICE = "price_..."
+
+# KV Namespace for email subscribers
+# Create with: wrangler kv namespace create SUBSCRIBERS
+# Then uncomment and fill in the ID below:
+# [[kv_namespaces]]
+# binding = "SUBSCRIBERS"
+# id = "YOUR_KV_NAMESPACE_ID"

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DepGuard — Dependency Audit & License Compliance</title>
+  <meta name="description" content="Scan dependencies for vulnerabilities, enforce license policies, and generate SBOMs. All locally, no code leaves your machine.">
+  <meta property="og:title" content="DepGuard — Dependency Audit & License Compliance">
+  <meta property="og:description" content="Vulnerability scanning, license compliance, and SBOM generation for every project.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://depguard.pages.dev">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0b0f;
+      --bg-card: #11131a;
+      --bg-card-hover: #181b24;
+      --border: #1c1f2e;
+      --border-accent: #2d3352;
+      --text: #d8dae5;
+      --text-dim: #7c8098;
+      --text-bright: #ffffff;
+      --accent: #00b894;
+      --accent-light: #55efc4;
+      --accent-glow: rgba(0, 184, 148, 0.12);
+      --red: #ff6b6b;
+      --red-glow: rgba(255, 107, 107, 0.12);
+      --orange: #fdcb6e;
+      --blue: #74b9ff;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg);
+      color: var(--text); line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── Nav ──────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 16px 0;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { font-size: 1.25rem; font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-bright); text-decoration: none; }
+
+    /* ─── Buttons ──────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #0a0b0f; box-shadow: 0 0 24px var(--accent-glow); }
+    .btn-primary:hover { background: #00d2a0; transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-accent); }
+    .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent); text-decoration: none; }
+    .btn-red { background: #e55039; color: white; }
+    .btn-red:hover { background: #ff6348; transform: translateY(-1px); text-decoration: none; }
+
+    /* ─── Hero ─────────────────────────────────── */
+    .hero {
+      padding: 100px 0 80px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; color: var(--text-bright);
+      line-height: 1.15; letter-spacing: -0.03em; max-width: 720px; margin: 0 auto;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent-light), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { font-size: 1.2rem; color: var(--text-dim); max-width: 560px; margin: 20px auto 0; }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+
+    .install-bar {
+      display: inline-flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; gap: 12px;
+      font-family: var(--mono); font-size: 0.9rem;
+      margin-top: 32px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .install-bar:hover { border-color: var(--accent); }
+    .install-bar code { color: var(--accent); }
+    .install-bar .copy-hint { color: var(--text-dim); font-size: 0.75rem; font-family: var(--font); }
+
+    /* ─── Terminal ─────────────────────────────── */
+    .terminal {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      max-width: 700px; margin: 48px auto 0;
+      text-align: left; font-family: var(--mono); font-size: 0.82rem; line-height: 1.8;
+    }
+    .terminal-header { background: #16161f; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-body { padding: 16px 20px; }
+    .prompt { color: var(--accent); }
+    .cmd { color: var(--text-bright); }
+    .output { color: var(--text-dim); }
+    .success { color: var(--accent); }
+    .warn { color: var(--orange); }
+    .error { color: var(--red); }
+
+    /* ─── Stats bar ────────────────────────────── */
+    .stats {
+      padding: 40px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; text-align: center;
+    }
+    .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--accent-light); }
+    .stat-label { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* ─── Features ─────────────────────────────── */
+    .features { padding: 80px 0; }
+    .features h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 48px; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* ─── Package managers ─────────────────────── */
+    .pkg-managers { padding: 60px 0; }
+    .pkg-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px; }
+    .pkg-tag {
+      background: var(--bg-card); border: 1px solid var(--border);
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 0.85rem; color: var(--text-dim); font-family: var(--mono);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ─── Pricing ──────────────────────────────── */
+    .pricing { padding: 80px 0; }
+    .pricing h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .pricing-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px; margin-top: 48px; max-width: 1000px; margin-left: auto; margin-right: auto;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px;
+      display: flex; flex-direction: column; transition: border-color 0.2s;
+    }
+    .price-card:hover { border-color: var(--border-accent); }
+    .price-card.featured { border-color: var(--accent); box-shadow: 0 0 40px var(--accent-glow); position: relative; }
+    .price-card.featured::before {
+      content: 'Best Value'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #0a0b0f; padding: 4px 16px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .price-tier { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .price-amount { font-size: 2.5rem; font-weight: 800; color: var(--text-bright); margin-top: 8px; }
+    .price-amount span { font-size: 0.9rem; font-weight: 400; color: var(--text-dim); }
+    .price-features { list-style: none; margin-top: 24px; flex-grow: 1; }
+    .price-features li { padding: 6px 0; font-size: 0.9rem; color: var(--text-dim); display: flex; align-items: flex-start; gap: 8px; }
+    .price-features li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .price-card .btn { margin-top: 24px; width: 100%; justify-content: center; }
+
+    /* ─── CTA ──────────────────────────────────── */
+    .cta { padding: 80px 0; text-align: center; }
+    .cta-box {
+      background: var(--bg-card); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 60px 40px;
+      box-shadow: 0 0 60px var(--accent-glow); max-width: 700px; margin: 0 auto;
+    }
+    .cta h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); }
+    .cta p { color: var(--text-dim); margin-top: 12px; font-size: 1.05rem; }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+
+    @media (max-width: 640px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .pricing-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="nav-brand"><span>🛡️</span> DepGuard</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#pricing" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <h1>Know what's in your <em>dependencies</em></h1>
+    <p>Vulnerability scanning, license compliance, and SBOM generation. All local, no code leaves your machine.</p>
+    <div class="hero-buttons">
+      <a href="#pricing" class="btn btn-primary">Get DepGuard Pro</a>
+      <a href="#install" class="btn btn-secondary">Install Free</a>
+    </div>
+    <div class="install-bar" onclick="navigator.clipboard.writeText('clawhub install depguard')" title="Click to copy">
+      <code>$ clawhub install depguard</code>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">depguard scan</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="cmd">━━━ DepGuard Security Scan ━━━</div>
+        <div class="output">&nbsp;</div>
+        <div class="output">Package managers: <span class="success">npm, pip</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="cmd">Vulnerabilities:</div>
+        <div><span class="error">✗ CRITICAL</span> <span class="cmd">lodash</span> <span class="output">4.17.20 — Prototype Pollution</span></div>
+        <div><span class="warn">⚠ HIGH</span> <span class="cmd">axios</span> <span class="output">0.21.1 — SSRF vulnerability</span></div>
+        <div><span class="success">✓ 847 packages</span> <span class="output">no known vulnerabilities</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="cmd">Licenses:</div>
+        <div><span class="warn">⚠</span> <span class="cmd">react-pdf</span> <span class="output">— GPL-3.0 (copyleft)</span></div>
+        <div><span class="error">?</span> <span class="cmd">legacy-util</span> <span class="output">— UNKNOWN LICENSE</span></div>
+        <div class="output">&nbsp;</div>
+        <div><span class="success">✓ 843 permissive</span> <span class="warn">⚠ 3 copyleft</span> <span class="error">? 3 unknown</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div><div class="stat-num">10</div><div class="stat-label">Package Managers</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">Local Processing</div></div>
+      <div><div class="stat-num">0</div><div class="stat-label">Data Sent Externally</div></div>
+      <div><div class="stat-num">&lt;5s</div><div class="stat-label">Average Scan Time</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="container">
+    <h2>Complete dependency security</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Vulnerability Scanning</h3>
+        <p>Uses native audit tools (npm audit, pip-audit, cargo audit, govulncheck) for accurate, up-to-date vulnerability detection.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>License Compliance</h3>
+        <p>Automatically categorizes every dependency license as permissive, copyleft, or unknown. Enforce policies that match your legal requirements.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🪝</div>
+        <h3>Git Hook Protection</h3>
+        <p>Block commits that modify lockfiles with critical vulnerabilities. Catches issues before they reach your main branch.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔧</div>
+        <h3>Auto-Fix</h3>
+        <p>One command upgrades vulnerable dependencies to patched versions. Supports npm, pnpm, pip, and cargo.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>SBOM Generation</h3>
+        <p>Generate CycloneDX SBOMs for compliance and audit requirements. Every dependency cataloged with version, license, and provenance.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏠</div>
+        <h3>100% Local</h3>
+        <p>No code or dependency lists are sent externally. Works in air-gapped environments. License validation is offline.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pkg-managers" id="install">
+  <div class="container" style="text-align: center;">
+    <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-bright);">Supports every ecosystem</h2>
+    <div class="pkg-grid">
+      <span class="pkg-tag">npm</span>
+      <span class="pkg-tag">yarn</span>
+      <span class="pkg-tag">pnpm</span>
+      <span class="pkg-tag">pip</span>
+      <span class="pkg-tag">cargo</span>
+      <span class="pkg-tag">go</span>
+      <span class="pkg-tag">composer</span>
+      <span class="pkg-tag">bundler</span>
+      <span class="pkg-tag">maven</span>
+      <span class="pkg-tag">gradle</span>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start with a free scan. Upgrade for continuous protection.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0</div>
+        <ul class="price-features">
+          <li>One-shot vulnerability scan</li>
+          <li>License detection</li>
+          <li>Markdown report</li>
+          <li>All 10 package managers</li>
+        </ul>
+        <a href="#install" class="btn btn-secondary">Install Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$19<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Free</li>
+          <li>Git hook enforcement</li>
+          <li>Continuous monitoring</li>
+          <li>Auto-fix vulnerabilities</li>
+        </ul>
+        <a href="#" class="btn btn-primary" onclick="handleCheckout('pro')">Get Pro</a>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">$39<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>License policy enforcement</li>
+          <li>SBOM generation (CycloneDX)</li>
+          <li>Compliance reports</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-primary" style="background: #6c5ce7;" onclick="handleCheckout('team')">Get Team</a>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-amount">$59<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Team</li>
+          <li>SSO / SAML</li>
+          <li>Audit logs</li>
+          <li>Dedicated support + SLA</li>
+        </ul>
+        <a href="mailto:sales@depguard.pages.dev" class="btn btn-secondary">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding: 60px 0 20px; text-align: center;">
+  <div class="container">
+    <div style="max-width: 520px; margin: 0 auto;">
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-bright);">Get security tips & DepGuard updates</h2>
+      <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.95rem;">No spam. One email per week max. Unsubscribe anytime.</p>
+      <form id="emailForm" style="display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="emailInput" placeholder="you@company.com" required
+          style="flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+          background: var(--bg-card); color: var(--text-bright); font-size: 0.95rem; font-family: var(--font);
+          outline: none; transition: border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Subscribe</button>
+      </form>
+      <p id="emailSuccess" style="display:none; color: var(--accent); margin-top: 12px; font-size: 0.9rem;">Thanks! Check your inbox.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Every dependency is an attack surface</h2>
+      <p>Scan yours in 10 seconds. Free, local, and instant.</p>
+      <div style="margin-top: 32px;">
+        <div class="install-bar" onclick="navigator.clipboard.writeText('clawhub install depguard')" style="margin: 0 auto;">
+          <code>$ clawhub install depguard</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>DepGuard &mdash; by <a href="https://clawhub.ai">ClawHub</a> &middot; <a href="mailto:support@depguard.pages.dev">Support</a> &middot; <a href="https://github.com/depguard">GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+  async function handleCheckout(plan) {
+    const apiBase = 'https://license-api.docsync-depguard.workers.dev';
+    try {
+      const res = await fetch(`${apiBase}/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, product: 'depguard' })
+      });
+      if (res.ok) {
+        const { url } = await res.json();
+        window.location.href = url;
+      } else {
+        window.location.href = 'mailto:sales@depguard.pages.dev?subject=DepGuard ' + plan + ' license';
+      }
+    } catch (e) {
+      window.location.href = 'mailto:sales@depguard.pages.dev?subject=DepGuard ' + plan + ' license&body=I%20want%20to%20purchase%20a%20DepGuard%20' + plan + '%20license.';
+    }
+  }
+
+  document.querySelectorAll('.install-bar').forEach(bar => {
+    bar.addEventListener('click', () => {
+      const hint = bar.querySelector('.copy-hint');
+      if (hint) { hint.textContent = 'Copied!'; setTimeout(() => { hint.textContent = 'click to copy'; }, 2000); }
+    });
+  });
+
+  document.getElementById('emailForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value;
+    if (!email) return;
+    try {
+      await fetch('https://license-api.docsync-depguard.workers.dev/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product: 'depguard', source: 'landing' })
+      });
+    } catch(err) {}
+    document.getElementById('emailForm').style.display = 'none';
+    document.getElementById('emailSuccess').style.display = 'block';
+  });
+</script>
+
+</body>
+</html>
