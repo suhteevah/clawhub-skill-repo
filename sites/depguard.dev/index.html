@@ -424,7 +424,7 @@
 
 <script>
   async function handleCheckout(plan) {
-    const apiBase = 'https://license-api.docsync-depguard.workers.dev';
+    const apiBase = 'https://license-api.clawhub-api.workers.dev';
     try {
       const res = await fetch(`${apiBase}/create-checkout`, {
         method: 'POST',
@@ -454,7 +454,7 @@
     const email = document.getElementById('emailInput').value;
     if (!email) return;
     try {
-      await fetch('https://license-api.docsync-depguard.workers.dev/subscribe', {
+      await fetch('https://license-api.clawhub-api.workers.dev/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, product: 'depguard', source: 'landing' })

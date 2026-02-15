@@ -1,137 +1,121 @@
-# DocSync
+# docsync
 
-**Auto-generate docs from code. Detect drift. Keep docs alive.**
+<p align="center">
+  <img src="https://img.shields.io/badge/languages-40%2B-blueviolet" alt="40+ languages">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
+  <img src="https://img.shields.io/badge/install-clawhub-blue" alt="ClawHub">
+  <img src="https://img.shields.io/badge/zero-telemetry-brightgreen" alt="Zero telemetry">
+</p>
 
-DocSync is an [OpenClaw](https://openclaw.sh) skill that generates documentation from your codebase and keeps it in sync with code changes — enforced via git hooks.
+<h3 align="center">Auto-generate docs from code. Detect drift. Keep docs alive.</h3>
 
-## Why DocSync?
+<p align="center">
+  <a href="https://docsync-1q4.pages.dev">Website</a> &middot;
+  <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#how-it-works">How It Works</a> &middot;
+  <a href="https://docsync-1q4.pages.dev/#pricing">Pricing</a>
+</p>
 
-Documentation rots. Every team knows it. DocSync fixes this by:
+---
 
-1. **Analyzing your code** with tree-sitter (40+ languages)
-2. **Generating structured docs** from functions, classes, types, and exports
-3. **Detecting drift** when code changes but docs don't
-4. **Blocking commits** with stale docs (via git pre-commit hooks)
-5. **Auto-regenerating** stale documentation on demand
+## The Problem
+
+Documentation rots. You know it. Your team knows it. That function you documented last month? The signature changed twice since then. The README? Written when the project had 3 files.
+
+**DocSync fixes this by making documentation a first-class citizen of your git workflow.**
 
 ## Quick Start
 
-### Install via ClawHub
-
 ```bash
+# Install via ClawHub (free)
 clawhub install docsync
+
+# Generate docs for your project
+docsync generate .
+
+# Check what's undocumented
+docsync drift
+
+# Auto-fix stale docs
+docsync auto-fix
+
+# Install git hooks to catch drift on every commit
+docsync hooks install
 ```
-
-### Generate docs (Free — no license needed)
-
-```
-> Generate docs for src/api/
-```
-
-OpenClaw will run `docsync generate src/api/` and produce markdown documentation for every source file.
-
-### Set up drift detection (Pro — $29/user/month)
-
-```
-> Install DocSync git hooks
-```
-
-Now every commit is checked for documentation drift. If you add a new function without documenting it, the commit is blocked with a helpful message.
-
-### Auto-fix stale docs (Pro)
-
-```
-> Fix my stale documentation
-```
-
-DocSync regenerates docs for any files with detected drift.
-
-## Pricing
-
-| Tier | Price | Features |
-|------|-------|----------|
-| **Free** | $0 | One-shot doc generation for files and directories |
-| **Pro** | $29/user/mo | Git hooks, drift detection, auto-fix, multi-language |
-| **Team** | $49/user/mo | + Onboarding guides, architecture docs, custom templates |
-| **Enterprise** | $79/user/mo | + SSO, audit logs, compliance reports, SLA |
-
-**Get your license:** [docsync.pages.dev/pricing](https://docsync.pages.dev/pricing)
-
-## Supported Languages
-
-TypeScript, JavaScript, Python, Rust, Go, Java, C, C++, Ruby, PHP, C#, Swift, Kotlin
 
 ## How It Works
 
+```
+You commit code
+      │
+      ▼
+Pre-commit hook fires
+      │
+      ▼
+DocSync parses staged files (tree-sitter)
+      │
+      ├─ Extracts: functions, classes, types, exports
+      ├─ Compares against existing docs
+      │
+      ▼
+ Drift detected?
+   ├─ No  → commit proceeds ✓
+   └─ Yes → blocks commit, suggests auto-fix
+```
+
 ### Code Analysis
 
-DocSync uses **tree-sitter** for accurate, incremental AST parsing. When tree-sitter isn't available, it falls back to regex-based extraction (less accurate but functional).
-
-Extracted symbols include:
-- Functions and methods (with signatures)
-- Classes, structs, and interfaces
-- Type aliases and enums
-- Module exports
+DocSync uses [tree-sitter](https://tree-sitter.github.io/) for accurate AST parsing across **40+ languages**. When tree-sitter isn't installed, it falls back to regex-based extraction.
 
 ### Drift Detection
 
-On each commit, DocSync:
-1. Parses staged source files
-2. Extracts all symbols
-3. Checks if each symbol appears in corresponding documentation
-4. Compares file modification times (source vs. docs)
-5. Reports: undocumented symbols (critical), stale docs (warning), up-to-date (info)
+Every commit is checked for:
+- **Undocumented symbols** — new functions/classes with no docs (critical)
+- **Stale signatures** — code changed but docs didn't (warning)
+- **Dead references** — deleted code still mentioned in docs (warning)
 
-### Git Hooks
+### Git Hook Enforcement
 
-Uses **lefthook** for fast, parallel git hook execution. The pre-commit hook:
-- Only analyzes files being committed (not the whole repo)
-- Runs in parallel with other hooks
-- Can be skipped with `git commit --no-verify`
+Uses [lefthook](https://github.com/evilmartians/lefthook) for fast, parallel pre-commit hooks. Runs only on staged files — no full-repo scans.
 
-## Configuration
+## Supported Languages
 
-Add to `~/.openclaw/openclaw.json`:
+TypeScript, JavaScript, Python, Rust, Go, Java, C, C++, Ruby, PHP, C#, Swift, Kotlin — and any language with a tree-sitter grammar.
 
-```json
-{
-  "skills": {
-    "entries": {
-      "docsync": {
-        "enabled": true,
-        "apiKey": "YOUR_LICENSE_KEY",
-        "config": {
-          "outputDir": "docs",
-          "excludePatterns": ["**/test/**", "**/node_modules/**"],
-          "driftThreshold": "warning",
-          "autoFix": false
-        }
-      }
-    }
-  }
-}
-```
+## Free vs Pro
 
-## FOSS Stack
+| Feature | Free | Pro ($29/user/mo) | Team ($49/user/mo) |
+|---------|:----:|:------------------:|:-------------------:|
+| Doc generation | ✓ | ✓ | ✓ |
+| Drift detection | | ✓ | ✓ |
+| Git hooks | | ✓ | ✓ |
+| Auto-fix | | ✓ | ✓ |
+| Onboarding guides | | | ✓ |
+| Architecture docs | | | ✓ |
+| Custom templates | | | ✓ |
 
-DocSync is built entirely on open-source tools:
-
-- **[tree-sitter](https://tree-sitter.github.io/)** — Multi-language AST parsing (MIT)
-- **[lefthook](https://github.com/evilmartians/lefthook)** — Git hooks manager (MIT)
-- **[difftastic](https://difftastic.wilfred.me.uk/)** — Structural diff tool (MIT)
+**Free tier is fully functional** for one-shot doc generation. Pro adds the "living docs" workflow.
 
 ## Privacy
 
-- **All processing happens locally** — your code never leaves your machine
-- **License validation is offline** — no phone-home, no telemetry
-- **No external API calls** — works in air-gapped environments
+- **100% local processing** — your code never leaves your machine
+- **Zero telemetry** — no analytics, no tracking, no phone-home
+- **Offline license validation** — works in air-gapped environments
 
-## Support
+## FOSS Stack
 
-- Docs: [docsync.pages.dev/docs](https://docsync.pages.dev/docs)
-- Issues: [github.com/docsync/docsync/issues](https://github.com/docsync/docsync/issues)
-- Email: support@docsync.pages.dev
+Built entirely on open-source tools:
+
+- [tree-sitter](https://tree-sitter.github.io/) — Multi-language AST parsing (MIT)
+- [lefthook](https://github.com/evilmartians/lefthook) — Git hooks manager (MIT)
+- [difftastic](https://difftastic.wilfred.me.uk/) — Structural diff tool (MIT)
+
+## Contributing
+
+PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-DocSync skill code is MIT licensed. Premium features require a commercial license key.
+MIT — free to use, modify, and distribute.
+
+The DocSync skill scripts are MIT licensed. Premium features (drift detection, hooks, auto-fix) require a [license key](https://docsync-1q4.pages.dev/#pricing).

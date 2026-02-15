@@ -16,7 +16,7 @@ That's the fundamental problem: **docs are disconnected from the code they descr
 
 Imagine if every commit was checked for documentation drift — the same way ESLint checks for code style or Jest checks for regressions.
 
-That's exactly what [DocSync](https://docsync.pages.dev) does.
+That's exactly what [DocSync](https://docsync-1q4.pages.dev) does.
 
 ## How It Works
 
@@ -56,7 +56,7 @@ clawhub install docsync
 docsync generate .
 ```
 
-The free tier generates docs for any file or directory. [DocSync Pro](https://docsync.pages.dev/#pricing) adds git hooks, drift detection, and auto-fix.
+The free tier generates docs for any file or directory. [DocSync Pro](https://docsync-1q4.pages.dev/#pricing) adds git hooks, drift detection, and auto-fix.
 
 ## 40+ Languages Supported
 
@@ -66,4 +66,4 @@ Everything runs locally. No code leaves your machine.
 
 ---
 
-*[DocSync](https://docsync.pages.dev) is an OpenClaw skill. Install free: `clawhub install docsync`*
+*[DocSync](https://docsync-1q4.pages.dev) is an OpenClaw skill. Install free: `clawhub install docsync`*

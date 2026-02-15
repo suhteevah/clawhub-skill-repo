@@ -8,7 +8,7 @@
   <meta property="og:title" content="DocSync — Living Documentation for Your Codebase">
   <meta property="og:description" content="Auto-generate docs from code. Detect drift. Keep docs alive via git hooks.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://docsync.pages.dev">
+  <meta property="og:url" content="https://docsync-1q4.pages.dev">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
   <style>
     /* ─── Reset & Base ──────────────────────────── */
@@ -570,7 +570,7 @@
           <li>Compliance reports</li>
           <li>Dedicated support + SLA</li>
         </ul>
-        <a href="mailto:sales@docsync.pages.dev" class="btn btn-secondary">Contact Sales</a>
+        <a href="mailto:sales@docsync-1q4.pages.dev" class="btn btn-secondary">Contact Sales</a>
       </div>
 
     </div>
@@ -665,7 +665,7 @@
 <!-- Footer -->
 <footer>
   <div class="container">
-    <p>DocSync &mdash; by <a href="https://clawhub.ai">ClawHub</a> &middot; <a href="mailto:support@docsync.pages.dev">Support</a> &middot; <a href="https://github.com/docsync">GitHub</a></p>
+    <p>DocSync &mdash; by <a href="https://clawhub.ai">ClawHub</a> &middot; <a href="mailto:support@docsync-1q4.pages.dev">Support</a> &middot; <a href="https://github.com/docsync">GitHub</a></p>
   </div>
 </footer>
 
@@ -683,7 +683,7 @@
   async function handleCheckout(plan) {
     // When Stripe is configured, this will redirect to checkout
     // For now, show a message
-    const apiBase = 'https://license-api.docsync-depguard.workers.dev';
+    const apiBase = 'https://license-api.clawhub-api.workers.dev';
 
     try {
       const res = await fetch(`${apiBase}/create-checkout`, {
@@ -697,11 +697,11 @@
         window.location.href = url;
       } else {
         // Fallback: direct to contact
-        window.location.href = 'mailto:sales@docsync.pages.dev?subject=DocSync ' + plan + ' license';
+        window.location.href = 'mailto:sales@docsync-1q4.pages.dev?subject=DocSync ' + plan + ' license';
       }
     } catch (e) {
       // API not yet deployed — show email fallback
-      window.location.href = 'mailto:sales@docsync.pages.dev?subject=DocSync ' + plan + ' license&body=I%20want%20to%20purchase%20a%20DocSync%20' + plan + '%20license.';
+      window.location.href = 'mailto:sales@docsync-1q4.pages.dev?subject=DocSync ' + plan + ' license&body=I%20want%20to%20purchase%20a%20DocSync%20' + plan + '%20license.';
     }
   }
 
@@ -723,7 +723,7 @@
     if (!email) return;
 
     try {
-      await fetch('https://license-api.docsync-depguard.workers.dev/subscribe', {
+      await fetch('https://license-api.clawhub-api.workers.dev/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, product: 'docsync', source: 'landing' })

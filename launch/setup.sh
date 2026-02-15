@@ -249,7 +249,7 @@ info "Deploying to Cloudflare Pages..."
 PAGES_OUTPUT=$(npx wrangler pages deploy "$REPO_ROOT/sites/docsync.dev" --project-name=docsync 2>&1)
 echo "$PAGES_OUTPUT"
 
-DOCSYNC_URL=$(echo "$PAGES_OUTPUT" | grep -oP 'https://[^\s]+\.pages\.dev' | head -1 || echo "https://docsync.pages.dev")
+DOCSYNC_URL=$(echo "$PAGES_OUTPUT" | grep -oP 'https://[^\s]+\.pages\.dev' | head -1 || echo "https://docsync-1q4.pages.dev")
 success "DocSync deployed: $DOCSYNC_URL"
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 ## Overview
 
 Three things need to be deployed:
-1. **docsync.pages.dev** — Static landing page (Cloudflare Pages, free)
+1. **docsync-1q4.pages.dev** — Static landing page (Cloudflare Pages, free)
 2. **depguard.pages.dev** — Static landing page (Cloudflare Pages, free)
 3. **license-api** — Cloudflare Worker for Stripe checkout + JWT key generation (free tier)
 
@@ -87,7 +87,7 @@ No domains to buy — Cloudflare Pages gives you free `*.pages.dev` subdomains a
 # Option A: Cloudflare Pages via Dashboard
 # 1. Go to Cloudflare Dashboard → Pages → Create a project
 # 2. Choose "Upload assets" (direct upload)
-# 3. Name the project "docsync" — this gives you docsync.pages.dev
+# 3. Name the project "docsync" — this gives you docsync-1q4.pages.dev
 # 4. Upload the sites/docsync.dev/ folder
 
 # Option B: Wrangler CLI
@@ -95,7 +95,7 @@ wrangler pages project create docsync
 wrangler pages deploy sites/docsync.dev --project-name=docsync
 ```
 
-Your site is now live at `https://docsync.pages.dev`
+Your site is now live at `https://docsync-1q4.pages.dev`
 
 ### DepGuard Landing Page
 
@@ -132,7 +132,7 @@ Then redeploy the Pages projects.
 
 ## Step 5: Test the Flow
 
-1. Go to `https://docsync.pages.dev`
+1. Go to `https://docsync-1q4.pages.dev`
 2. Click "Get Pro"
 3. Should redirect to Stripe Checkout
 4. Use test card: `4242 4242 4242 4242`

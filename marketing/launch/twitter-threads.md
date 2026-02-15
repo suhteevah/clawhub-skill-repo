@@ -64,7 +64,7 @@ docsync generate .
 
 Pro ($29/user/mo) adds git hooks and auto-fix.
 
-https://docsync.pages.dev
+https://docsync-1q4.pages.dev
 
 ---
 

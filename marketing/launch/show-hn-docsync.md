@@ -2,7 +2,7 @@
 
 **Title:** Show HN: DocSync – Git hooks that block commits with stale documentation
 
-**URL:** https://docsync.pages.dev
+**URL:** https://docsync-1q4.pages.dev
 
 **Text:**
 

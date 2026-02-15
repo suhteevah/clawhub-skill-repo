@@ -46,7 +46,7 @@ Both tools are 100% local — your code never leaves your machine. The free tier
 
 ### Links
 
-- DocSync: https://docsync.pages.dev
+- DocSync: https://docsync-1q4.pages.dev
 - DepGuard: https://depguard.pages.dev
 - DocSync on ClawHub: `clawhub search docsync`
 - DepGuard on ClawHub: `clawhub search depguard`

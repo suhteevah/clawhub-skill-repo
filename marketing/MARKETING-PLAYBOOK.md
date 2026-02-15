@@ -48,7 +48,7 @@
 ```
 GitHub OSS Repos (free users)
        ↓
-Landing Pages (docsync.pages.dev / depguard.pages.dev)
+Landing Pages (docsync-1q4.pages.dev / depguard.pages.dev)
        ↓
 Email Capture (newsletter signup)
        ↓

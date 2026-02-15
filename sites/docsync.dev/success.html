@@ -63,7 +63,7 @@
     </div>
     <div id="error" style="display:none;">
       <h1>Something went wrong</h1>
-      <p>We couldn't retrieve your license key. Please contact <a href="mailto:support@docsync.pages.dev" style="color: var(--accent-light);">support@docsync.pages.dev</a> with your receipt.</p>
+      <p>We couldn't retrieve your license key. Please contact <a href="mailto:support@docsync-1q4.pages.dev" style="color: var(--accent-light);">support@docsync-1q4.pages.dev</a> with your receipt.</p>
     </div>
   </div>
 
@@ -80,7 +80,7 @@
 
       try {
         // In production, this endpoint retrieves the license key for a completed session
-        const res = await fetch(`https://license-api.docsync-depguard.workers.dev/session/${sessionId}`);
+        const res = await fetch(`https://license-api.clawhub-api.workers.dev/session/${sessionId}`);
         if (res.ok) {
           const { licenseKey } = await res.json();
           document.getElementById('licenseKey').textContent = licenseKey;

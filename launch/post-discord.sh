@@ -56,7 +56,7 @@ MSG3="**Technical Stack:**
 • JWT licensing — offline validation, no phone-home
 
 **Links:**
-• DocSync: <https://docsync.pages.dev>
+• DocSync: <https://docsync-1q4.pages.dev>
 • DepGuard: <https://depguard.pages.dev>
 
 Happy to answer questions! Both tools are actively maintained. 🦞"

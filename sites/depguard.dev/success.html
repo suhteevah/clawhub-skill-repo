@@ -58,7 +58,7 @@
       const sessionId = params.get('session_id');
       if (!sessionId) { document.getElementById('loading').style.display='none'; document.getElementById('error').style.display='block'; return; }
       try {
-        const res = await fetch(`https://license-api.docsync-depguard.workers.dev/session/${sessionId}`);
+        const res = await fetch(`https://license-api.clawhub-api.workers.dev/session/${sessionId}`);
         if (res.ok) { const {licenseKey} = await res.json(); document.getElementById('licenseKey').textContent=licenseKey; document.getElementById('loading').style.display='none'; document.getElementById('success').style.display='block'; }
         else throw new Error();
       } catch(e) {

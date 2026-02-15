@@ -1,67 +1,106 @@
-# DepGuard
+# depguard
 
-**Dependency audit, vulnerability scanning, and license compliance for every project.**
+<p align="center">
+  <img src="https://img.shields.io/badge/package_managers-10-blue" alt="10 package managers">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License">
+  <img src="https://img.shields.io/badge/install-clawhub-blue" alt="ClawHub">
+  <img src="https://img.shields.io/badge/zero-telemetry-brightgreen" alt="Zero telemetry">
+</p>
 
-DepGuard is an [OpenClaw](https://openclaw.sh) skill that scans your dependencies for known vulnerabilities, enforces license policies, and generates compliance reports — all locally, no code leaves your machine.
+<h3 align="center">Dependency audit, vulnerability scanning, and license compliance.</h3>
 
-## Why DepGuard?
+<p align="center">
+  <a href="https://depguard.pages.dev">Website</a> &middot;
+  <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#supported-package-managers">Package Managers</a> &middot;
+  <a href="https://depguard.pages.dev/#pricing">Pricing</a>
+</p>
 
-Every dependency is an attack surface. DepGuard helps you:
+---
 
-1. **Scan for vulnerabilities** using native audit tools (npm audit, pip-audit, cargo audit, govulncheck)
-2. **Check licenses** — find copyleft, unknown, or problematic licenses before they become legal issues
-3. **Block commits** that introduce vulnerable dependencies (via git hooks)
-4. **Auto-fix** by upgrading to patched versions
-5. **Generate SBOMs** in CycloneDX format for compliance requirements
-6. **Enforce policies** — block specific licenses, require minimum versions
+## The Problem
+
+Every dependency is an attack surface. A single vulnerable package can compromise your entire application. And license compliance? Most teams don't even check until legal asks.
+
+**DepGuard scans your dependencies for vulnerabilities, enforces license policies, and generates SBOMs — all locally.**
 
 ## Quick Start
 
-### Install via ClawHub
-
 ```bash
+# Install via ClawHub (free)
 clawhub install depguard
+
+# Scan for vulnerabilities
+depguard scan
+
+# Generate a security report
+depguard report
+
+# Auto-fix vulnerable packages (Pro)
+depguard fix
+
+# Install git hooks (Pro)
+depguard hooks install
+
+# Generate SBOM (Team)
+depguard sbom
+
+# Check license compliance (Team)
+depguard compliance
 ```
-
-### Scan dependencies (Free)
-
-```
-> Scan my dependencies for vulnerabilities
-```
-
-### Set up continuous monitoring (Pro)
-
-```
-> Install DepGuard git hooks
-```
-
-### Generate compliance report (Team)
-
-```
-> Generate a license compliance report
-```
-
-## Pricing
-
-| Tier | Price | Features |
-|------|-------|----------|
-| **Free** | $0 | One-shot vulnerability scan + license check |
-| **Pro** | $19/user/mo | Git hooks, continuous monitoring, auto-fix |
-| **Team** | $39/user/mo | + Policy enforcement, SBOM generation, compliance reports |
-| **Enterprise** | $59/user/mo | + SSO, audit logs, SLA |
-
-**Get your license:** [depguard.pages.dev/pricing](https://depguard.pages.dev/pricing)
 
 ## Supported Package Managers
 
-npm, yarn, pnpm, pip, cargo, go, composer, bundler, maven, gradle
+| Manager | Lockfile | Audit Tool |
+|---------|----------|------------|
+| **npm** | package-lock.json | npm audit |
+| **yarn** | yarn.lock | yarn audit |
+| **pnpm** | pnpm-lock.yaml | pnpm audit |
+| **pip** | requirements.txt | pip-audit |
+| **cargo** | Cargo.lock | cargo audit |
+| **go** | go.sum | govulncheck |
+| **composer** | composer.lock | composer audit |
+| **bundler** | Gemfile.lock | bundle audit |
+| **maven** | pom.xml | dependency-check |
+| **gradle** | build.gradle | dependencyCheck |
+
+## What It Does
+
+### Vulnerability Scanning
+Uses native audit tools (npm audit, pip-audit, cargo audit, govulncheck) for accurate, up-to-date vulnerability detection. No proprietary database — uses the same sources your package managers trust.
+
+### License Compliance
+Categorizes every dependency license:
+- **Permissive** (MIT, Apache, BSD) — low risk
+- **Copyleft** (GPL, AGPL) — high risk for proprietary projects
+- **Unknown** — critical, needs investigation
+
+### SBOM Generation
+Produces CycloneDX 1.5 JSON SBOMs for compliance and audit requirements.
+
+### Git Hook Protection
+Pre-commit hooks scan lockfile changes for new vulnerabilities before they reach your codebase.
+
+## Pricing
+
+| Feature | Free | Pro ($19/user/mo) | Team ($39/user/mo) |
+|---------|:----:|:------------------:|:-------------------:|
+| Vulnerability scan | ✓ | ✓ | ✓ |
+| License detection | ✓ | ✓ | ✓ |
+| Markdown report | ✓ | ✓ | ✓ |
+| Git hooks | | ✓ | ✓ |
+| Auto-fix | | ✓ | ✓ |
+| Continuous monitoring | | ✓ | ✓ |
+| License policy enforcement | | | ✓ |
+| SBOM generation | | | ✓ |
+| Compliance reports | | | ✓ |
 
 ## Privacy
 
-- All scanning happens locally using native audit tools
-- No code or dependency data is sent externally
-- License validation is offline (JWT-based, no phone-home)
+- 100% local — no code or dependency data sent externally
+- Zero telemetry
+- Offline license validation
 
 ## License
 
-DepGuard skill code is MIT licensed. Premium features require a commercial license key.
+MIT

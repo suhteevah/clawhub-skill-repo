@@ -19,7 +19,7 @@ Free to use for doc generation. Pro adds the hooks. Everything runs locally — 
 
 `clawhub install docsync`
 
-https://docsync.pages.dev
+https://docsync-1q4.pages.dev
 
 ---
 
@@ -40,7 +40,7 @@ Results after 3 months of internal use:
 
 The tool is called DocSync. Free tier generates docs from code. Pro adds the git hooks.
 
-https://docsync.pages.dev
+https://docsync-1q4.pages.dev
 
 ---
 
@@ -68,7 +68,7 @@ Free, runs locally, no account needed.
 
 The pro version adds a git hook that catches when you change code but don't update the docs.
 
-https://docsync.pages.dev
+https://docsync-1q4.pages.dev
 
 ---
 

@@ -193,12 +193,12 @@ async function handleCreateCheckout(request, env) {
 
   // Determine success URL based on product
   const successUrls = {
-    docsync: 'https://docsync.pages.dev/success?session_id={CHECKOUT_SESSION_ID}',
+    docsync: 'https://docsync-1q4.pages.dev/success?session_id={CHECKOUT_SESSION_ID}',
     depguard: 'https://depguard.pages.dev/success?session_id={CHECKOUT_SESSION_ID}',
   };
 
   const cancelUrls = {
-    docsync: 'https://docsync.pages.dev/#pricing',
+    docsync: 'https://docsync-1q4.pages.dev/#pricing',
     depguard: 'https://depguard.pages.dev/#pricing',
   };
 
