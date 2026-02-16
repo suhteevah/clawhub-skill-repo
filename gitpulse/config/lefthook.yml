@@ -1,0 +1,21 @@
+# GitPulse — lefthook configuration
+# Installed by: gitpulse hooks install
+# Documentation: https://gitpulse.pages.dev/docs/hooks
+
+pre-push:
+  parallel: true
+  commands:
+    gitpulse-health-check:
+      run: |
+        GITPULSE_SKILL_DIR="${GITPULSE_SKILL_DIR:-$HOME/.openclaw/skills/gitpulse}"
+        if [[ -f "$GITPULSE_SKILL_DIR/scripts/scorer.sh" ]]; then
+          source "$GITPULSE_SKILL_DIR/scripts/scorer.sh"
+          hook_health_check
+        else
+          echo "[GitPulse] Skill not found at $GITPULSE_SKILL_DIR — skipping health check"
+        fi
+      fail_text: |
+        Repo health score too low!
+        Run 'gitpulse score' to see details
+        Run 'gitpulse check --fix' for quick fixes
+        Or 'git push --no-verify' to skip

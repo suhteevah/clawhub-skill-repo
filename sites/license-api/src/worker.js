@@ -11,6 +11,8 @@
  *   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, JWT_SECRET
  *   DOCSYNC_PRO_PRICE, DOCSYNC_TEAM_PRICE
  *   DEPGUARD_PRO_PRICE, DEPGUARD_TEAM_PRICE
+ *   ENVGUARD_PRO_PRICE, ENVGUARD_TEAM_PRICE
+ *   GITPULSE_PRO_PRICE, GITPULSE_TEAM_PRICE
  */
 
 // ─── CORS ────────────────────────────────────────────────────────────────────
@@ -184,6 +186,10 @@ async function handleCreateCheckout(request, env) {
     'docsync:team': env.DOCSYNC_TEAM_PRICE,
     'depguard:pro': env.DEPGUARD_PRO_PRICE,
     'depguard:team': env.DEPGUARD_TEAM_PRICE,
+    'envguard:pro': env.ENVGUARD_PRO_PRICE,
+    'envguard:team': env.ENVGUARD_TEAM_PRICE,
+    'gitpulse:pro': env.GITPULSE_PRO_PRICE,
+    'gitpulse:team': env.GITPULSE_TEAM_PRICE,
   };
 
   const priceId = priceMap[`${product}:${plan}`];
@@ -195,11 +201,15 @@ async function handleCreateCheckout(request, env) {
   const successUrls = {
     docsync: 'https://docsync-1q4.pages.dev/success?session_id={CHECKOUT_SESSION_ID}',
     depguard: 'https://depguard.pages.dev/success?session_id={CHECKOUT_SESSION_ID}',
+    envguard: 'https://envguard.pages.dev/success?session_id={CHECKOUT_SESSION_ID}',
+    gitpulse: 'https://gitpulse.pages.dev/success?session_id={CHECKOUT_SESSION_ID}',
   };
 
   const cancelUrls = {
     docsync: 'https://docsync-1q4.pages.dev/#pricing',
     depguard: 'https://depguard.pages.dev/#pricing',
+    envguard: 'https://envguard.pages.dev/#pricing',
+    gitpulse: 'https://gitpulse.pages.dev/#pricing',
   };
 
   const session = await stripeRequest('/checkout/sessions', {
