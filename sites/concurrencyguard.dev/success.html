@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to ConcurrencyGuard Pro!</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%A1</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0b0f; --bg-card: #11131a; --border: #1c1f2e;
+      --text: #d8dae5; --text-dim: #7c8098; --text-bright: #fff;
+      --accent: #fdcb6e; --accent-light: #ffeaa7;
+      --mono: 'JetBrains Mono', monospace; --font: 'Inter', sans-serif;
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 48px; max-width: 600px; width: 100%; text-align: center; }
+    h1 { font-size: 2rem; color: var(--text-bright); margin-bottom: 8px; }
+    h1 span { font-size: 2.5rem; }
+    p { color: var(--text-dim); margin-top: 12px; line-height: 1.6; }
+    .key-box { background: #0d0d14; border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin-top: 32px; font-family: var(--mono); font-size: 0.8rem; word-break: break-all; color: var(--accent-light); cursor: pointer; position: relative; }
+    .key-label { font-family: var(--font); font-size: 0.85rem; color: var(--text-dim); margin-bottom: 8px; text-align: left; }
+    .copy-msg { position: absolute; top: -28px; right: 12px; background: var(--accent); color: #0a0b0f; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-family: var(--font); display: none; }
+    .steps { text-align: left; margin-top: 32px; }
+    .steps h3 { color: var(--text-bright); font-size: 1rem; margin-bottom: 12px; }
+    .step { display: flex; gap: 12px; padding: 8px 0; color: var(--text-dim); font-size: 0.9rem; }
+    .step-num { background: var(--accent); color: #0a0b0f; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+    code { background: #0d0d14; padding: 2px 8px; border-radius: 4px; font-family: var(--mono); font-size: 0.85rem; color: var(--accent-light); }
+    .back-link { display: inline-block; margin-top: 32px; color: var(--accent-light); text-decoration: none; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="card">
+    <div id="loading">Loading your license key...</div>
+    <div id="success" style="display:none;">
+      <h1><span>&#x26A1;</span><br>Welcome to ConcurrencyGuard Pro!</h1>
+      <p>Your ConcurrencyGuard license key is ready. Copy it and add it to your OpenClaw config to activate.</p>
+      <div class="key-box" onclick="copyKey()">
+        <div class="copy-msg" id="copyMsg">Copied!</div>
+        <div class="key-label">Your License Key (click to copy):</div>
+        <div id="licenseKey"></div>
+      </div>
+      <div class="steps">
+        <h3>Setup instructions:</h3>
+        <div class="step"><div class="step-num">1</div><div>Copy the license key above</div></div>
+        <div class="step"><div class="step-num">2</div><div>Open <code>~/.openclaw/openclaw.json</code></div></div>
+        <div class="step"><div class="step-num">3</div><div>Add: <code>"skills": { "entries": { "concurrencyguard": { "apiKey": "YOUR_KEY" } } }</code></div></div>
+        <div class="step"><div class="step-num">4</div><div>Install hooks: <code>concurrencyguard hooks install</code></div></div>
+        <div class="step"><div class="step-num">5</div><div>Test it: <code>concurrencyguard scan</code></div></div>
+      </div>
+      <a href="/" class="back-link">&larr; Back to ConcurrencyGuard</a>
+    </div>
+    <div id="error" style="display:none;">
+      <h1>Something went wrong</h1>
+      <p>We couldn't retrieve your license key. Please contact <a href="mailto:support@concurrencyguard.pages.dev" style="color: var(--accent-light);">support@concurrencyguard.pages.dev</a> with your purchase receipt and we'll get it sorted.</p>
+      <a href="/" class="back-link">&larr; Back to ConcurrencyGuard</a>
+    </div>
+  </div>
+  <script>
+    async function loadKey() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+      if (!sessionId) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        return;
+      }
+      try {
+        const res = await fetch(`https://clawhub-api.workers.dev/session/${sessionId}`);
+        if (res.ok) {
+          const { licenseKey } = await res.json();
+          document.getElementById('licenseKey').textContent = licenseKey;
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('success').style.display = 'block';
+        } else {
+          throw new Error();
+        }
+      } catch(e) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('success').style.display = 'block';
+        document.getElementById('licenseKey').textContent = 'Check your email for your license key!';
+      }
+    }
+
+    function copyKey() {
+      const k = document.getElementById('licenseKey').textContent;
+      if (k && !k.includes('Check')) {
+        navigator.clipboard.writeText(k);
+        const m = document.getElementById('copyMsg');
+        m.style.display = 'block';
+        setTimeout(() => { m.style.display = 'none'; }, 2000);
+      }
+    }
+
+    loadKey();
+  </script>
+</body>
+</html>

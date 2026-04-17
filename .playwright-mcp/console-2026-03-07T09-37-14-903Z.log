@@ -1,0 +1,5 @@
+[    2093ms] [WARNING] <no-ssr> has been deprecated and will be removed in Nuxt 3, please use <client-only> instead @ https://www.upwork.com/static/assets/AccountSecurityNuxt/app.25e9d464.js:1
+[    4902ms] [ERROR] Failed to load resource: net::ERR_FAILED @ chrome-extension://invalid/:0
+[    6583ms] [ERROR] Attestation check for Attribution Reporting on https://www.facebook.com failed. @ https://www.upwork.com/ab/account-security/login?redir=%2Fnx%2Ffind-work%2F:0
+[   35189ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.postMessage call. @ https://accounts.google.com/gsi/client:354
+[   35189ms] [ERROR] Cross-Origin-Opener-Policy policy would block the window.postMessage call. @ https://accounts.google.com/gsi/client:354

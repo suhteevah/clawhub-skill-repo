@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RegexGuard — Regex Safety & Correctness Analyzer</title>
+  <meta name="description" content="Find catastrophic backtracking, portability errors, injection risks, and correctness bugs in regex patterns. 90 checks across 6 categories.">
+  <meta property="og:title" content="RegexGuard — Regex Safety & Correctness Analyzer">
+  <meta property="og:description" content="Your regex is a ticking time bomb. RegexGuard finds catastrophic backtracking, injection risks, and correctness bugs before they reach production.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://regexguard.pages.dev">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8E%AF</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0b0f;
+      --bg-card: #11131a;
+      --bg-card-hover: #181b24;
+      --border: #1c1f2e;
+      --border-accent: #2d3352;
+      --text: #d8dae5;
+      --text-dim: #7c8098;
+      --text-bright: #ffffff;
+      --accent: #e17055;
+      --accent-light: #fab1a0;
+      --accent-glow: rgba(225, 112, 85, 0.12);
+      --red: #ff6b6b;
+      --red-glow: rgba(255, 107, 107, 0.12);
+      --orange: #fdcb6e;
+      --orange-glow: rgba(253, 203, 110, 0.12);
+      --blue: #74b9ff;
+      --blue-glow: rgba(116, 185, 255, 0.12);
+      --purple: #6c5ce7;
+      --purple-glow: rgba(108, 92, 231, 0.15);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg);
+      color: var(--text); line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* --- Nav ---------------------------------------- */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 16px 0;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand {
+      font-size: 1.25rem; font-weight: 700; color: var(--text-bright);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-bright); text-decoration: none; }
+
+    /* --- Buttons ------------------------------------ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--accent); color: #0a0b0f;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      background: #c0553d; transform: translateY(-1px);
+      box-shadow: 0 0 40px var(--accent-glow); text-decoration: none;
+    }
+    .btn-secondary {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border-accent);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card); border-color: var(--accent); text-decoration: none;
+    }
+
+    /* --- Hero --------------------------------------- */
+    .hero {
+      padding: 100px 0 80px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; color: var(--text-bright);
+      line-height: 1.15; letter-spacing: -0.03em; max-width: 780px; margin: 0 auto;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p {
+      font-size: 1.2rem; color: var(--text-dim);
+      max-width: 640px; margin: 20px auto 0;
+    }
+    .hero-buttons {
+      display: flex; gap: 12px; justify-content: center;
+      margin-top: 36px; flex-wrap: wrap;
+    }
+
+    .install-bar {
+      display: inline-flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; gap: 12px;
+      font-family: var(--mono); font-size: 0.9rem;
+      margin-top: 32px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .install-bar:hover { border-color: var(--accent); }
+    .install-bar code { color: var(--accent); }
+    .install-bar .copy-hint {
+      color: var(--text-dim); font-size: 0.75rem; font-family: var(--font);
+    }
+
+    /* --- Terminal ----------------------------------- */
+    .terminal {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      max-width: 740px; margin: 48px auto 0;
+      text-align: left; font-family: var(--mono); font-size: 0.8rem; line-height: 1.8;
+    }
+    .terminal-header {
+      background: #16161f; padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-title {
+      color: var(--text-dim); font-size: 0.72rem;
+      margin-left: auto; font-family: var(--font);
+    }
+    .terminal-body { padding: 16px 20px; overflow-x: auto; }
+    .prompt { color: var(--accent); }
+    .cmd { color: var(--text-bright); }
+    .output { color: var(--text-dim); }
+    .success { color: var(--accent); }
+    .warn { color: var(--orange); }
+    .error { color: var(--red); }
+    .medium { color: var(--blue); }
+    .low { color: var(--text-dim); }
+    .separator { color: var(--border-accent); }
+    .terminal-line { opacity: 0; animation: fadeIn 0.3s ease forwards; }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    /* --- Problem Section --------------------------- */
+    .problem { padding: 80px 0; text-align: center; }
+    .problem h2 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; color: var(--text-bright);
+      max-width: 700px; margin: 0 auto;
+    }
+    .problem h2 em { font-style: normal; color: var(--red); }
+
+    /* --- Stats bar --------------------------------- */
+    .stats {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; text-align: center;
+    }
+    .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--accent-light); }
+    .stat-num.danger { color: var(--red); }
+    .stat-label { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* --- Features / What It Catches ----------------- */
+    .features { padding: 80px 0; }
+    .features h2 {
+      font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center;
+    }
+    .features-subtitle {
+      color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem;
+      max-width: 600px; margin-left: auto; margin-right: auto;
+    }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px; margin-top: 48px;
+    }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card .tag {
+      display: inline-block; font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+      color: var(--accent); background: var(--accent-glow);
+      border: 1px solid rgba(225, 112, 85, 0.25);
+      border-radius: 4px; padding: 2px 8px; margin-bottom: 10px;
+    }
+    .feature-card h3 {
+      font-size: 1.1rem; font-weight: 600; color: var(--text-bright); margin-bottom: 8px;
+    }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; }
+    .feature-card .check-count {
+      display: inline-block; font-family: var(--mono); font-size: 0.72rem;
+      color: var(--accent-light); background: rgba(225, 112, 85, 0.08);
+      border-radius: 4px; padding: 2px 8px; margin-top: 12px;
+    }
+
+    /* --- Comparison table -------------------------- */
+    .comparison { padding: 80px 0; }
+    .comparison h2 {
+      font-size: 2rem; font-weight: 700; color: var(--text-bright);
+      text-align: center; margin-bottom: 12px;
+    }
+    .comparison-subtitle {
+      color: var(--text-dim); text-align: center; margin-bottom: 48px; font-size: 1.05rem;
+    }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .compare-table {
+      width: 100%; border-collapse: collapse; font-size: 0.88rem;
+      min-width: 640px;
+    }
+    .compare-table th, .compare-table td {
+      padding: 14px 16px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table thead th {
+      color: var(--text-dim); font-weight: 600; font-size: 0.8rem;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      background: var(--bg-card); position: sticky; top: 0;
+    }
+    .compare-table thead th:first-child { border-radius: 8px 0 0 0; }
+    .compare-table thead th:last-child { border-radius: 0 8px 0 0; }
+    .compare-table thead th.highlight {
+      color: var(--accent-light); border-bottom: 2px solid var(--accent);
+    }
+    .compare-table tbody td { color: var(--text-dim); }
+    .compare-table tbody td:first-child { color: var(--text); font-weight: 500; }
+    .compare-table tbody td.highlight {
+      color: var(--text-bright); background: rgba(225, 112, 85, 0.04);
+    }
+    .compare-table .yes { color: var(--accent-light); }
+    .compare-table .no { color: var(--text-dim); opacity: 0.5; }
+
+    /* --- Pricing ----------------------------------- */
+    .pricing { padding: 80px 0; }
+    .pricing h2 {
+      font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center;
+    }
+    .pricing-subtitle {
+      color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem;
+    }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-top: 48px; max-width: 1000px;
+      margin-left: auto; margin-right: auto;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px;
+      display: flex; flex-direction: column; transition: border-color 0.2s;
+    }
+    .price-card:hover { border-color: var(--border-accent); }
+    .price-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 40px var(--accent-glow);
+      position: relative;
+    }
+    .price-card.featured::before {
+      content: 'Most Popular'; position: absolute; top: -12px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent); color: #0a0b0f; padding: 4px 16px;
+      border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    }
+    .price-tier {
+      font-size: 0.85rem; font-weight: 600; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .price-amount {
+      font-size: 2.5rem; font-weight: 800; color: var(--text-bright); margin-top: 8px;
+    }
+    .price-amount span { font-size: 0.9rem; font-weight: 400; color: var(--text-dim); }
+    .price-desc {
+      color: var(--text-dim); font-size: 0.88rem; margin-top: 8px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .price-features { list-style: none; margin-top: 20px; flex-grow: 1; }
+    .price-features li {
+      padding: 6px 0; font-size: 0.9rem; color: var(--text-dim);
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+    .price-features li::before {
+      content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0;
+    }
+    .price-card .btn { margin-top: 24px; width: 100%; justify-content: center; }
+
+    /* --- Email Subscribe --------------------------- */
+    .subscribe { padding: 60px 0 20px; text-align: center; }
+    .subscribe h2 {
+      font-size: 1.5rem; font-weight: 700; color: var(--text-bright);
+    }
+    .subscribe p {
+      color: var(--text-dim); margin-top: 8px; font-size: 0.95rem;
+    }
+    .subscribe-form {
+      display: flex; gap: 8px; margin-top: 24px;
+      flex-wrap: wrap; justify-content: center; max-width: 520px;
+      margin-left: auto; margin-right: auto;
+    }
+    .subscribe-form input[type="email"] {
+      flex: 1; min-width: 220px; padding: 12px 16px;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text-bright);
+      font-size: 0.95rem; font-family: var(--font);
+      outline: none; transition: border-color 0.2s;
+    }
+    .subscribe-form input[type="email"]:focus { border-color: var(--accent); }
+
+    /* --- CTA --------------------------------------- */
+    .cta { padding: 80px 0; text-align: center; }
+    .cta-box {
+      background: var(--bg-card); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 60px 40px;
+      box-shadow: 0 0 60px var(--accent-glow); max-width: 700px; margin: 0 auto;
+    }
+    .cta h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); }
+    .cta p { color: var(--text-dim); margin-top: 12px; font-size: 1.05rem; }
+
+    /* --- Score badge ------------------------------- */
+    .score-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--red-glow); border: 1px solid var(--red);
+      border-radius: 8px; padding: 6px 14px; margin-top: 8px;
+      font-family: var(--mono); font-size: 0.85rem;
+    }
+    .score-grade { font-weight: 800; color: var(--red); font-size: 1.1rem; }
+    .score-text { color: var(--text-dim); }
+
+    /* --- Footer ------------------------------------ */
+    footer {
+      border-top: 1px solid var(--border); padding: 32px 0;
+      text-align: center; color: var(--text-dim); font-size: 0.85rem;
+    }
+    footer a { color: var(--accent-light); }
+
+    /* --- Responsive -------------------------------- */
+    @media (max-width: 640px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .compare-table { font-size: 0.78rem; }
+      .compare-table th, .compare-table td { padding: 10px 10px; }
+      .nav-links { gap: 14px; }
+      .nav-links a.hide-mobile { display: none; }
+      .terminal { font-size: 0.72rem; }
+      .cta-box { padding: 40px 24px; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <div class="container">
+    <div class="nav-brand"><span>&#x1F3AF;</span> RegexGuard</div>
+    <div class="nav-links">
+      <a href="#features" class="hide-mobile">Features</a>
+      <a href="#comparison" class="hide-mobile">Compare</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://github.com/suhteevah/regexguard">GitHub</a>
+      <a href="#pricing" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="container">
+    <h1>Your regex is <em>a&nbsp;time&nbsp;bomb.</em><br>RegexGuard defuses it.</h1>
+    <p>Find catastrophic backtracking, portability errors, injection risks, and correctness bugs in regex patterns &mdash; before they reach production.</p>
+    <div class="hero-buttons">
+      <a href="https://github.com/suhteevah/regexguard" class="btn btn-secondary">Get Started Free</a>
+      <a href="#pricing" class="btn btn-primary">Get Pro</a>
+    </div>
+    <div class="install-bar" title="Click to copy">
+      <code>$ clawhub install regexguard</code>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <!-- Terminal Demo -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <span class="terminal-title">regexguard scan</span>
+      </div>
+      <div class="terminal-body" id="terminal-output">
+        <!-- Animated terminal lines inserted by JS -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PROBLEM STATEMENT ==================== -->
+<section class="problem">
+  <div class="container">
+    <h2>Your regex is <em>a&nbsp;liability.</em></h2>
+    <p style="color: var(--text-dim); margin-top: 16px; font-size: 1.05rem; max-width: 640px; margin-left: auto; margin-right: auto;">
+      One badly-nested quantifier can freeze an entire server for minutes. One unescaped user input can turn a search into a denial-of-service attack.
+      Most regex reviews catch obvious syntax errors &mdash; they miss the catastrophic backtracking, the injection vectors, and the portability traps hiding in your patterns.
+      RegexGuard scans every pattern for safety, correctness, and maintainability so your regex never becomes the bottleneck.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== STATS ==================== -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div><div class="stat-num">90</div><div class="stat-label">Detection patterns</div></div>
+      <div><div class="stat-num">6</div><div class="stat-label">Check categories</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">Local &mdash; zero telemetry</div></div>
+      <div><div class="stat-num">0</div><div class="stat-label">Dependencies</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== WHAT IT CATCHES ==================== -->
+<section class="features" id="features">
+  <div class="container">
+    <h2>What RegexGuard Catches</h2>
+    <p class="features-subtitle">90 checks across 6 categories, covering every aspect of regex safety, correctness, and maintainability.</p>
+    <div class="features-grid">
+
+      <!-- Card 1: Catastrophic Backtracking -->
+      <div class="feature-card">
+        <div class="tag">CB</div>
+        <div class="feature-icon">&#x1F4A5;</div>
+        <h3>Catastrophic Backtracking</h3>
+        <p>Detects nested quantifiers, exponential state explosion, unbounded repetition groups, overlapping alternations, and patterns that can freeze your server for minutes on adversarial input strings.</p>
+        <div class="check-count">15 checks</div>
+      </div>
+
+      <!-- Card 2: Portability Errors -->
+      <div class="feature-card">
+        <div class="tag">PE</div>
+        <div class="feature-icon">&#x1F310;</div>
+        <h3>Portability Errors</h3>
+        <p>Finds engine-specific features that break across JavaScript, Python, Go, and Java. Catches lookbehind incompatibilities, named group syntax mismatches, flag differences, and Unicode property escapes.</p>
+        <div class="check-count">15 checks</div>
+      </div>
+
+      <!-- Card 3: Correctness -->
+      <div class="feature-card">
+        <div class="tag">CE</div>
+        <div class="feature-icon">&#x2705;</div>
+        <h3>Correctness</h3>
+        <p>Catches unescaped metacharacters, incorrect character class ranges, misplaced anchors, redundant groups, empty alternation branches, and patterns that silently match nothing or everything.</p>
+        <div class="check-count">15 checks</div>
+      </div>
+
+      <!-- Card 4: Maintainability -->
+      <div class="feature-card">
+        <div class="tag">MA</div>
+        <div class="feature-icon">&#x1F9F9;</div>
+        <h3>Maintainability</h3>
+        <p>Flags overly complex patterns exceeding cognitive thresholds, deeply nested groups, magic numbers in quantifiers, missing comments on complex expressions, and patterns that no human can review.</p>
+        <div class="check-count">15 checks</div>
+      </div>
+
+      <!-- Card 5: Anchoring -->
+      <div class="feature-card">
+        <div class="tag">AN</div>
+        <div class="feature-icon">&#x2693;</div>
+        <h3>Anchoring</h3>
+        <p>Detects missing start/end anchors on validation patterns, partial match vulnerabilities in security contexts, multiline anchor confusion, and patterns that validate less than developers expect.</p>
+        <div class="check-count">15 checks</div>
+      </div>
+
+      <!-- Card 6: Pattern Injection -->
+      <div class="feature-card">
+        <div class="tag">PI</div>
+        <div class="feature-icon">&#x1F489;</div>
+        <h3>Pattern Injection</h3>
+        <p>Finds user input concatenated into RegExp constructors, template literal injection points, missing regex escaping on dynamic values, and patterns built from untrusted sources without sanitization.</p>
+        <div class="check-count">15 checks</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== COMPARISON TABLE ==================== -->
+<section class="comparison" id="comparison">
+  <div class="container">
+    <h2>RegexGuard vs. the alternatives</h2>
+    <p class="comparison-subtitle">Purpose-built for regex safety and correctness. Not a generic linter with a couple regex rules.</p>
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width: 30%;">Capability</th>
+            <th class="highlight">RegexGuard</th>
+            <th>Manual Review</th>
+            <th>ESLint</th>
+            <th>SonarQube</th>
+            <th>regex101</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Catastrophic backtracking detection</td>
+            <td class="highlight"><span class="yes">&#x2713; 15 rules</span></td>
+            <td>Ad hoc</td>
+            <td><span class="no">&#x2717;</span></td>
+            <td>Partial</td>
+            <td>Partial</td>
+          </tr>
+          <tr>
+            <td>Cross-engine portability</td>
+            <td class="highlight"><span class="yes">&#x2713; 15 rules</span></td>
+            <td>Ad hoc</td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td>Partial</td>
+          </tr>
+          <tr>
+            <td>Correctness analysis</td>
+            <td class="highlight"><span class="yes">&#x2713; 15 rules</span></td>
+            <td>Ad hoc</td>
+            <td>Partial</td>
+            <td>Partial</td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Pattern injection detection</td>
+            <td class="highlight"><span class="yes">&#x2713; 15 rules</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td>Partial</td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Anchoring analysis</td>
+            <td class="highlight"><span class="yes">&#x2713; 15 rules</span></td>
+            <td>Ad hoc</td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Maintainability scoring</td>
+            <td class="highlight"><span class="yes">&#x2713; 15 rules</span></td>
+            <td>Ad hoc</td>
+            <td><span class="no">&#x2717;</span></td>
+            <td>Partial</td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Static analysis (no runtime)</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>100% local / zero telemetry</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Score &amp; grading system</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Zero configuration</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td>N/A</td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PRICING ==================== -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start scanning for free. Upgrade when your patterns demand it.</p>
+    <div class="pricing-grid">
+
+      <!-- Free -->
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0<span>/mo</span></div>
+        <div class="price-desc">For solo developers who want basic regex safety.</div>
+        <ul class="price-features">
+          <li>30 detection patterns</li>
+          <li>Catastrophic Backtracking (CB) category</li>
+          <li>Correctness (CE) category</li>
+          <li>Terminal report output</li>
+          <li>Basic scoring &amp; grading</li>
+          <li>Community support</li>
+        </ul>
+        <a href="https://github.com/suhteevah/regexguard" class="btn btn-secondary">Install Free</a>
+      </div>
+
+      <!-- Pro -->
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$19<span>/mo</span></div>
+        <div class="price-desc">For developers shipping safe, portable patterns.</div>
+        <ul class="price-features">
+          <li>60 detection patterns</li>
+          <li>Everything in Free</li>
+          <li>Portability Errors (PE) category</li>
+          <li>Pattern Injection (PI) category</li>
+          <li>JSON &amp; HTML reports</li>
+          <li>Category filtering</li>
+          <li>Email support</li>
+        </ul>
+        <button class="btn btn-primary" onclick="createCheckout('price_1T3T9fA3SuLeinmVedo0Y7Ww', 'regexguard')">Get Pro</button>
+      </div>
+
+      <!-- Team -->
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">$39<span>/mo</span></div>
+        <div class="price-desc">For teams enforcing regex standards across all repos.</div>
+        <ul class="price-features">
+          <li>All 90 detection patterns</li>
+          <li>Everything in Pro</li>
+          <li>Maintainability (MA) category</li>
+          <li>Anchoring (AN) category</li>
+          <li>CI/CD integration</li>
+          <li>Custom rule definitions</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="btn btn-primary" style="background: var(--purple); box-shadow: 0 0 24px var(--purple-glow);" onclick="createCheckout('price_1T3T9yA3SuLeinmVBliMDwtS', 'regexguard')">Get Team</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== EMAIL SUBSCRIBE ==================== -->
+<section class="subscribe">
+  <div class="container">
+    <h2>Get notified about updates</h2>
+    <p>No spam. One email per week max. Unsubscribe anytime.</p>
+    <div class="subscribe-form">
+      <input type="email" id="subscribe-email" placeholder="you@company.com">
+      <button id="subscribe-btn" class="btn btn-primary" style="white-space: nowrap;" onclick="subscribe()">Subscribe</button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CTA ==================== -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Your regex patterns deserve a safety net</h2>
+      <p>Install RegexGuard in 30 seconds. Find every backtracking bomb, injection vector, and correctness bug before your users find them for you.</p>
+      <div style="margin-top: 32px;">
+        <div class="install-bar" style="margin: 0 auto;" title="Click to copy">
+          <code>$ clawhub install regexguard</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="container">
+    <p>&copy; 2025 <a href="https://clawhub.ai">ClawHub</a>. All rights reserved.</p>
+    <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);">Zero telemetry. Your code never leaves your machine. Ever.</p>
+  </div>
+</footer>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+  const apiBase = 'https://clawhub-api.workers.dev';
+
+  /* ── Terminal animation ────────────────────────── */
+  const terminalLines = [
+    { html: '<span class="prompt">$</span> <span class="cmd">regexguard scan src/</span>', delay: 0 },
+    { html: '<span class="success">&#x1F3AF; RegexGuard v1.0.0</span>', delay: 400 },
+    { html: '&nbsp;', delay: 600 },
+    { html: '<span class="output">Scanning 112 files across 6 directories...</span>', delay: 800 },
+    { html: '&nbsp;', delay: 1100 },
+    { html: '&nbsp;&nbsp;<span class="cmd">validators/email.js:23</span>', delay: 1400 },
+    { html: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="error">&#x2717; [CRITICAL] CB-001: Nested quantifiers causing catastrophic backtracking</span>', delay: 1600 },
+    { html: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Refactor (a+)+ to use atomic group or possessive quantifier</span>', delay: 1800 },
+    { html: '&nbsp;', delay: 2000 },
+    { html: '&nbsp;&nbsp;<span class="cmd">utils/parser.ts:67</span>', delay: 2200 },
+    { html: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="warn">&#x26A0; [HIGH] PI-002: User input concatenated into RegExp constructor</span>', delay: 2400 },
+    { html: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Escape user input with a regex-safe utility before constructing patterns</span>', delay: 2600 },
+    { html: '&nbsp;', delay: 2800 },
+    { html: '&nbsp;&nbsp;<span class="cmd">lib/router.js:12</span>', delay: 3000 },
+    { html: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="medium">&#x26A1; [MEDIUM] CE-005: Unescaped dot in character class</span>', delay: 3200 },
+    { html: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Escape the dot or use a literal character match to avoid unintended wildcards</span>', delay: 3400 },
+    { html: '&nbsp;', delay: 3600 },
+    { html: '&nbsp;&nbsp;<span class="separator">&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;</span>', delay: 3800 },
+    { html: '&nbsp;&nbsp;<span class="output">Files scanned: </span><span class="cmd">112</span><span class="output">&nbsp;&nbsp;|&nbsp;&nbsp;Issues: </span><span class="error">1 critical</span>&nbsp;&nbsp;<span class="warn">1 high</span>&nbsp;&nbsp;<span class="medium">1 medium</span>', delay: 4000 },
+    { html: '&nbsp;&nbsp;<span class="output">Score: </span><span class="error">52/100</span><span class="output"> (Grade: </span><span class="error">F</span><span class="output">)</span>', delay: 4200 },
+    { html: '&nbsp;', delay: 4400 },
+    { html: '&nbsp;&nbsp;<span class="output">Run </span><span class="cmd">regexguard scan --fix</span><span class="output"> to apply auto-fixes, or </span><span class="cmd">regexguard report</span><span class="output"> for full HTML report.</span>', delay: 4600 },
+  ];
+
+  function animateTerminal() {
+    const container = document.getElementById('terminal-output');
+    if (!container) return;
+    terminalLines.forEach((line, i) => {
+      setTimeout(() => {
+        const div = document.createElement('div');
+        div.className = 'terminal-line';
+        div.style.animationDelay = '0s';
+        div.innerHTML = line.html;
+        container.appendChild(div);
+      }, line.delay);
+    });
+  }
+
+  // Run terminal animation when element is in view
+  const termObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateTerminal();
+        termObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  const termEl = document.getElementById('terminal-output');
+  if (termEl) termObserver.observe(termEl.closest('.terminal'));
+
+  /* ── Stripe checkout ───────────────────────────── */
+  async function createCheckout(priceId, tool) {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Redirecting...';
+    btn.disabled = true;
+    try {
+      const res = await fetch(`${apiBase}/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, tool }),
+      });
+      const { url, error } = await res.json();
+      if (url) {
+        window.location.href = url;
+      } else {
+        btn.textContent = error || 'Error — try again';
+        btn.disabled = false;
+        setTimeout(() => { btn.textContent = originalText; }, 3000);
+      }
+    } catch (e) {
+      btn.textContent = 'Error — try again';
+      btn.disabled = false;
+      setTimeout(() => { btn.textContent = originalText; }, 3000);
+    }
+  }
+
+  /* ── Email subscribe ───────────────────────────── */
+  async function subscribe() {
+    const emailInput = document.getElementById('subscribe-email');
+    const email = emailInput.value.trim();
+    if (!email || !email.includes('@')) {
+      emailInput.style.borderColor = 'var(--red)';
+      setTimeout(() => { emailInput.style.borderColor = 'var(--border)'; }, 2000);
+      return;
+    }
+    const btn = document.getElementById('subscribe-btn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Subscribing...';
+    btn.disabled = true;
+    try {
+      await fetch(`${apiBase}/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product: 'regexguard', source: 'landing' }),
+      });
+      btn.textContent = '\u2713 Subscribed!';
+      btn.style.background = '#e17055';
+      emailInput.value = '';
+    } catch (e) {
+      btn.textContent = 'Error — try again';
+      btn.disabled = false;
+      setTimeout(() => { btn.textContent = originalText; }, 3000);
+    }
+  }
+
+  // Allow pressing Enter in email field to subscribe
+  document.getElementById('subscribe-email').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { subscribe(); }
+  });
+
+  // Copy-to-clipboard for install bars
+  document.querySelectorAll('.install-bar').forEach(bar => {
+    bar.addEventListener('click', () => {
+      navigator.clipboard.writeText('clawhub install regexguard');
+      const hint = bar.querySelector('.copy-hint');
+      if (hint) {
+        hint.textContent = 'Copied!';
+        setTimeout(() => { hint.textContent = 'click to copy'; }, 2000);
+      }
+    });
+  });
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

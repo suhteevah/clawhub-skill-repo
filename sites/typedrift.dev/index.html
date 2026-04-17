@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeDrift — Code Quality Erosion Detector</title>
+  <meta name="description" content="Find type suppressions, lint bypasses, and quality erosion before they spread. Multi-language. 100% local. Zero telemetry.">
+  <meta property="og:title" content="TypeDrift — Code Quality Erosion Detector">
+  <meta property="og:description" content="Find type suppressions, lint bypasses, and quality erosion before they spread. Multi-language. 100% local. Zero telemetry.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://typedrift.pages.dev">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%94%8D</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0b0f;
+      --bg-card: #11131a;
+      --bg-card-hover: #181b24;
+      --border: #1c1f2e;
+      --border-accent: #2d3352;
+      --text: #d8dae5;
+      --text-dim: #7c8098;
+      --text-bright: #ffffff;
+      --accent: #00b894;
+      --accent-light: #55efc4;
+      --accent-glow: rgba(0, 184, 148, 0.12);
+      --red: #ff6b6b;
+      --red-glow: rgba(255, 107, 107, 0.12);
+      --orange: #fdcb6e;
+      --blue: #74b9ff;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg);
+      color: var(--text); line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* --- Nav ---------------------------------------- */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 16px 0;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { font-size: 1.25rem; font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-bright); text-decoration: none; }
+
+    /* --- Buttons ------------------------------------ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #0a0b0f; box-shadow: 0 0 24px var(--accent-glow); }
+    .btn-primary:hover { background: #00d2a0; transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-accent); }
+    .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent); text-decoration: none; }
+    .btn-red { background: #e55039; color: white; }
+    .btn-red:hover { background: #ff6348; transform: translateY(-1px); text-decoration: none; }
+
+    /* --- Hero --------------------------------------- */
+    .hero {
+      padding: 100px 0 80px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; color: var(--text-bright);
+      line-height: 1.15; letter-spacing: -0.03em; max-width: 720px; margin: 0 auto;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { font-size: 1.2rem; color: var(--text-dim); max-width: 600px; margin: 20px auto 0; }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+
+    .install-bar {
+      display: inline-flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; gap: 12px;
+      font-family: var(--mono); font-size: 0.9rem;
+      margin-top: 32px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .install-bar:hover { border-color: var(--accent); }
+    .install-bar code { color: var(--accent); }
+    .install-bar .copy-hint { color: var(--text-dim); font-size: 0.75rem; font-family: var(--font); }
+
+    /* --- Terminal ----------------------------------- */
+    .terminal {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      max-width: 700px; margin: 48px auto 0;
+      text-align: left; font-family: var(--mono); font-size: 0.82rem; line-height: 1.8;
+    }
+    .terminal-header { background: #16161f; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-body { padding: 16px 20px; }
+    .prompt { color: var(--accent); }
+    .cmd { color: var(--text-bright); }
+    .output { color: var(--text-dim); }
+    .success { color: var(--accent); }
+    .warn { color: var(--orange); }
+    .error { color: var(--red); }
+
+    /* --- Problem Section --------------------------- */
+    .problem { padding: 80px 0; text-align: center; }
+    .problem h2 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; color: var(--text-bright);
+      max-width: 700px; margin: 0 auto;
+    }
+    .problem h2 em {
+      font-style: normal; color: var(--red);
+    }
+
+    /* --- Stats bar --------------------------------- */
+    .stats {
+      padding: 40px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; text-align: center;
+    }
+    .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--accent-light); }
+    .stat-num.danger { color: var(--red); }
+    .stat-label { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* --- How it works ------------------------------ */
+    .how-it-works { padding: 80px 0; }
+    .how-it-works h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+    .step-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 28px; position: relative;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .step-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .step-number {
+      background: var(--accent); color: #0a0b0f; width: 36px; height: 36px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1rem; margin-bottom: 16px;
+    }
+    .step-card h3 { font-size: 1.15rem; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; }
+    .step-card p { color: var(--text-dim); font-size: 0.9rem; }
+    .step-card code {
+      display: block; background: #0d0d14; border: 1px solid var(--border);
+      padding: 10px 14px; border-radius: 6px; margin-top: 12px;
+      font-family: var(--mono); font-size: 0.8rem; color: var(--accent-light);
+      word-break: break-all;
+    }
+
+    /* --- Features ---------------------------------- */
+    .features { padding: 80px 0; }
+    .features h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 48px; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* --- Comparison table -------------------------- */
+    .comparison { padding: 80px 0; }
+    .comparison h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; margin-bottom: 48px; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .compare-table {
+      width: 100%; border-collapse: collapse; font-size: 0.88rem;
+      min-width: 700px;
+    }
+    .compare-table th, .compare-table td {
+      padding: 14px 16px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table thead th {
+      color: var(--text-dim); font-weight: 600; font-size: 0.8rem;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      background: var(--bg-card); position: sticky; top: 0;
+    }
+    .compare-table thead th:first-child { border-radius: 8px 0 0 0; }
+    .compare-table thead th:last-child { border-radius: 0 8px 0 0; }
+    .compare-table thead th.highlight {
+      color: var(--accent-light); border-bottom: 2px solid var(--accent);
+    }
+    .compare-table tbody td { color: var(--text-dim); }
+    .compare-table tbody td:first-child { color: var(--text); font-weight: 500; }
+    .compare-table tbody td.highlight {
+      color: var(--text-bright); background: rgba(0, 184, 148, 0.04);
+    }
+    .compare-table .yes { color: var(--accent-light); }
+    .compare-table .no { color: var(--red); }
+
+    /* --- Pricing ----------------------------------- */
+    .pricing { padding: 80px 0; }
+    .pricing h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .pricing-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-top: 48px; max-width: 1000px; margin-left: auto; margin-right: auto;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px;
+      display: flex; flex-direction: column; transition: border-color 0.2s;
+    }
+    .price-card:hover { border-color: var(--border-accent); }
+    .price-card.featured { border-color: var(--accent); box-shadow: 0 0 40px var(--accent-glow); position: relative; }
+    .price-card.featured::before {
+      content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #0a0b0f; padding: 4px 16px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .price-tier { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .price-amount { font-size: 2.5rem; font-weight: 800; color: var(--text-bright); margin-top: 8px; }
+    .price-amount span { font-size: 0.9rem; font-weight: 400; color: var(--text-dim); }
+    .price-features { list-style: none; margin-top: 24px; flex-grow: 1; }
+    .price-features li { padding: 6px 0; font-size: 0.9rem; color: var(--text-dim); display: flex; align-items: flex-start; gap: 8px; }
+    .price-features li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .price-card .btn { margin-top: 24px; width: 100%; justify-content: center; }
+
+    /* --- CTA --------------------------------------- */
+    .cta { padding: 80px 0; text-align: center; }
+    .cta-box {
+      background: var(--bg-card); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 60px 40px;
+      box-shadow: 0 0 60px var(--accent-glow); max-width: 700px; margin: 0 auto;
+    }
+    .cta h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); }
+    .cta p { color: var(--text-dim); margin-top: 12px; font-size: 1.05rem; }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+    footer a { color: var(--accent-light); }
+
+    @media (max-width: 640px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .compare-table { font-size: 0.78rem; }
+      .compare-table th, .compare-table td { padding: 10px 10px; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="nav-brand"><span>&#x1F50D;</span> TypeDrift</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#comparison">Compare</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://github.com/suhteevah/typedrift" class="nav-links">GitHub</a>
+      <a href="#pricing" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>Your codebase has <em>347 `any` types.</em> And counting.</h1>
+    <p>TypeDrift finds type suppressions, lint bypasses, and code quality erosion patterns across TypeScript, Python, Go, Java, and Ruby. Before they metastasize.</p>
+    <div class="hero-buttons">
+      <a href="https://github.com/suhteevah/typedrift" class="btn btn-secondary">Get Started Free</a>
+      <a href="#pricing" class="btn btn-primary">Get Pro</a>
+    </div>
+    <div class="install-bar" onclick="navigator.clipboard.writeText('clawhub install typedrift')" title="Click to copy">
+      <code>$ clawhub install typedrift</code>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <!-- Terminal Demo -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">typedrift scan src/</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="success">&#x1F50D; TypeDrift: Scanning 142 source files...</div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="error">!! CRITICAL</span>&nbsp;&nbsp;<span class="cmd">src/api/client.ts:45</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">as any (type assertion)</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Remove type assertion: define proper interface</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="warn">!&nbsp; HIGH</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">src/utils/parse.py:12</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output"># type: ignore</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Add proper type annotation instead of suppression</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="output">.. MEDIUM</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">src/config.ts:89</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">// eslint-disable-next-line</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Fix the underlying lint issue instead of suppressing</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="warn">Quality Score: 62/100 (D)</span></div>
+        <div>&nbsp;&nbsp;<span class="error">23 erosion patterns found</span> <span class="output">(3 critical, 8 high, 12 medium)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Problem Statement -->
+<section class="problem">
+  <div class="container">
+    <h2>One `any` becomes ten. Ten becomes <em>a hundred.</em></h2>
+    <p style="color: var(--text-dim); margin-top: 16px; font-size: 1.05rem; max-width: 600px; margin-left: auto; margin-right: auto;">Type suppressions and lint bypasses are code debt that compounds. Every @ts-ignore today is a runtime error tomorrow. TypeDrift catches erosion before it becomes structural.</p>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div><div class="stat-num danger">47%</div><div class="stat-label">of TS projects have >100 `any` types</div></div>
+      <div><div class="stat-num danger">3.2x</div><div class="stat-label">more bugs in weakly-typed code</div></div>
+      <div><div class="stat-num danger">12 min</div><div class="stat-label">avg fix time per suppression</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works" id="how">
+  <div class="container">
+    <h2>Three steps to stop quality erosion</h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Install</h3>
+        <p>One command installs TypeDrift and hooks into your workflow via ClawHub.</p>
+        <code>clawhub install typedrift</code>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Code</h3>
+        <p>Write code normally. TypeDrift watches for type suppressions, lint bypasses, and quality erosion patterns. Zero friction.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Detect</h3>
+        <p>Get a quality score with every scan. See exactly where erosion is happening and what to fix first, with clear remediation steps.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <h2>Everything you need to stop code quality erosion</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F50D;</div>
+        <h3>Multi-language Detection</h3>
+        <p>Scans TypeScript, Python, Go, Java, Ruby, and Kotlin for type suppressions, lint bypasses, and quality erosion patterns.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4CA;</div>
+        <h3>Quality Scoring</h3>
+        <p>0-100 quality score with A-F grading for every scan. Track your codebase health over time and spot regressions instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1FA9D;</div>
+        <h3>Pre-commit Hooks</h3>
+        <p>Block new type suppressions and lint bypasses before they enter the codebase. Stop erosion at the source.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4C8;</div>
+        <h3>Trend Tracking</h3>
+        <p>See quality erosion over your entire git history. Visualize when drift started and which commits made it worse.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F3AF;</div>
+        <h3>Git Blame Attribution</h3>
+        <p>Know exactly who introduced each suppression and when. No more guessing who added that @ts-ignore three months ago.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4CB;</div>
+        <h3>Policy Enforcement</h3>
+        <p>Set team-wide quality thresholds for CI/CD. Fail builds when quality score drops below your standard.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison Table -->
+<section class="comparison" id="comparison">
+  <div class="container">
+    <h2>How TypeDrift compares</h2>
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="highlight">TypeDrift</th>
+            <th>SonarQube ($150/mo)</th>
+            <th>CodeClimate ($15/dev/mo)</th>
+            <th>DeepSource ($12/dev/mo)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Price</td>
+            <td class="highlight">Free / $19 / $39</td>
+            <td>$150/mo</td>
+            <td>$15/dev/mo</td>
+            <td>$12/dev/mo</td>
+          </tr>
+          <tr>
+            <td>Runs Locally</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Zero Config</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Multi-language</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+          </tr>
+          <tr>
+            <td>Pre-commit Hooks</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Zero Telemetry</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+            <td><span class="no">&#x2717;</span></td>
+          </tr>
+          <tr>
+            <td>Quality Trends</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+          </tr>
+          <tr>
+            <td>Policy Enforcement</td>
+            <td class="highlight"><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+            <td><span class="yes">&#x2713;</span></td>
+          </tr>
+          <tr>
+            <td>Setup Time</td>
+            <td class="highlight">30 seconds</td>
+            <td>30+ min</td>
+            <td>15+ min</td>
+            <td>10+ min</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start scanning for free. Upgrade for full erosion protection.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0</div>
+        <ul class="price-features">
+          <li>Scan up to 5 files</li>
+          <li>Quality score + grade</li>
+          <li>40+ erosion patterns</li>
+          <li>CLI output</li>
+        </ul>
+        <a href="https://github.com/suhteevah/typedrift" class="btn btn-secondary">Install Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$19<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Free</li>
+          <li>Unlimited scanning</li>
+          <li>Pre-commit hooks</li>
+          <li>Markdown reports</li>
+          <li>Git blame attribution</li>
+        </ul>
+        <a href="#" class="btn btn-primary" onclick="handleCheckout('pro'); return false;">Get Pro</a>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">$39<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Quality trend tracking</li>
+          <li>Policy enforcement</li>
+          <li>CI/CD integration</li>
+          <li>Baseline management</li>
+        </ul>
+        <a href="#" class="btn btn-primary" style="background: #6c5ce7;" onclick="handleCheckout('team'); return false;">Get Team</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Email Signup -->
+<section style="padding: 60px 0 20px; text-align: center;">
+  <div class="container">
+    <div style="max-width: 520px; margin: 0 auto;">
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-bright);">Get notified about updates</h2>
+      <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.95rem;">No spam. One email per week max. Unsubscribe anytime.</p>
+      <form id="emailForm" style="display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="emailInput" placeholder="you@company.com" required
+          style="flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+          background: var(--bg-card); color: var(--text-bright); font-size: 0.95rem; font-family: var(--font);
+          outline: none; transition: border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Subscribe</button>
+      </form>
+      <p id="emailSuccess" style="display:none; color: var(--accent); margin-top: 12px; font-size: 0.9rem;">Thanks! Check your inbox.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Your code quality is eroding right now</h2>
+      <p>Install TypeDrift in 30 seconds. Catch the rot before it spreads.</p>
+      <div style="margin-top: 32px;">
+        <div class="install-bar" onclick="navigator.clipboard.writeText('clawhub install typedrift')" style="margin: 0 auto;">
+          <code>$ clawhub install typedrift</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>TypeDrift &mdash; by <a href="https://clawhub.ai">ClawHub</a> &middot; <a href="https://github.com/suhteevah/typedrift">GitHub</a> &middot; <a href="mailto:support@typedrift.pages.dev">Support</a></p>
+    <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);">Zero telemetry. Your code never leaves your machine. Ever.</p>
+  </div>
+</footer>
+
+<script>
+  // Checkout handler
+  async function handleCheckout(plan) {
+    const apiBase = 'https://clawhub-api.workers.dev';
+    try {
+      const res = await fetch(`${apiBase}/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: 'typedrift', plan })
+      });
+      if (res.ok) {
+        const { url } = await res.json();
+        window.location.href = url;
+      } else {
+        window.location.href = 'mailto:support@typedrift.pages.dev?subject=TypeDrift ' + plan + ' license';
+      }
+    } catch (e) {
+      window.location.href = 'mailto:support@typedrift.pages.dev?subject=TypeDrift ' + plan + ' license&body=I%20want%20to%20purchase%20a%20TypeDrift%20' + plan + '%20license.';
+    }
+  }
+
+  // Copy-to-clipboard feedback for install bars
+  document.querySelectorAll('.install-bar').forEach(bar => {
+    bar.addEventListener('click', () => {
+      const hint = bar.querySelector('.copy-hint');
+      if (hint) { hint.textContent = 'Copied!'; setTimeout(() => { hint.textContent = 'click to copy'; }, 2000); }
+    });
+  });
+
+  // Email subscribe form
+  document.getElementById('emailForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value;
+    if (!email) return;
+    try {
+      await fetch('https://clawhub-api.workers.dev/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product: 'typedrift', source: 'landing' })
+      });
+    } catch(err) {}
+    document.getElementById('emailForm').style.display = 'none';
+    document.getElementById('emailSuccess').style.display = 'block';
+  });
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+[   79314ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[   80668ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[   83796ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[   88511ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[   88511ms] Uncaught (in promise) #<Response>
+    at flush (https://cdn.jsdelivr.net/npm/@app-city/analytics-browser@0.5.0/dist/app-city-analytics.min.js:0:3076)
+[   93193ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[   94546ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[   97548ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[  102306ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[  102306ms] Uncaught (in promise) #<Response>
+    at flush (https://cdn.jsdelivr.net/npm/@app-city/analytics-browser@0.5.0/dist/app-city-analytics.min.js:0:3076)
+[  103635ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[  105286ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[  108378ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[  113227ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[  113227ms] Uncaught (in promise) #<Response>
+    at flush (https://cdn.jsdelivr.net/npm/@app-city/analytics-browser@0.5.0/dist/app-city-analytics.min.js:0:3076)
+[  118154ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0
+[  119564ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://api.appcity.io/v0/events:0

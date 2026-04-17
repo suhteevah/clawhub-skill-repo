@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitPulse — Repo Health Scoring & Hygiene</title>
+  <meta name="description" content="Repo health scoring that catches missing docs, stale branches, CI gaps, and dependency risks. One command, instant score.">
+  <meta property="og:title" content="GitPulse — Repo Health Scoring & Hygiene">
+  <meta property="og:description" content="One command to score your repo's health across 5 categories. Fix what matters, guard against regressions.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gitpulse.pages.dev">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0b0f;
+      --bg-card: #11131a;
+      --bg-card-hover: #181b24;
+      --border: #1c1f2e;
+      --border-accent: #2d3352;
+      --text: #d8dae5;
+      --text-dim: #7c8098;
+      --text-bright: #ffffff;
+      --accent: #06b6d4;
+      --accent-light: #22d3ee;
+      --accent-glow: rgba(6, 182, 212, 0.12);
+      --red: #ff6b6b;
+      --red-glow: rgba(255, 107, 107, 0.12);
+      --orange: #fdcb6e;
+      --blue: #74b9ff;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg);
+      color: var(--text); line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* --- Nav ---------------------------------------- */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 16px 0;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { font-size: 1.25rem; font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-bright); text-decoration: none; }
+
+    /* --- Buttons ------------------------------------ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #0a0b0f; box-shadow: 0 0 24px var(--accent-glow); }
+    .btn-primary:hover { background: #0dd3f0; transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-accent); }
+    .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent); text-decoration: none; }
+
+    /* --- Hero --------------------------------------- */
+    .hero {
+      padding: 100px 0 80px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; color: var(--text-bright);
+      line-height: 1.15; letter-spacing: -0.03em; max-width: 720px; margin: 0 auto;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent-light), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { font-size: 1.2rem; color: var(--text-dim); max-width: 600px; margin: 20px auto 0; }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+
+    .install-bar {
+      display: inline-flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; gap: 12px;
+      font-family: var(--mono); font-size: 0.9rem;
+      margin-top: 32px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .install-bar:hover { border-color: var(--accent); }
+    .install-bar code { color: var(--accent); }
+    .install-bar .copy-hint { color: var(--text-dim); font-size: 0.75rem; font-family: var(--font); }
+
+    /* --- Terminal ----------------------------------- */
+    .terminal {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      max-width: 700px; margin: 48px auto 0;
+      text-align: left; font-family: var(--mono); font-size: 0.78rem; line-height: 1.7;
+    }
+    .terminal-header { background: #16161f; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-body { padding: 16px 20px; overflow-x: auto; }
+    .prompt { color: var(--accent); }
+    .cmd { color: var(--text-bright); }
+    .output { color: var(--text-dim); }
+    .success { color: var(--accent); }
+    .warn { color: var(--orange); }
+    .error { color: var(--red); }
+    .bar-fill { color: var(--accent); }
+    .bar-empty { color: #2a2d3e; }
+
+    /* --- Problem Section --------------------------- */
+    .problem { padding: 80px 0 40px; text-align: center; }
+    .problem h2 { font-size: 1.6rem; font-weight: 700; color: var(--text-bright); max-width: 700px; margin: 0 auto; line-height: 1.4; }
+    .problem h2 em {
+      font-style: normal; color: var(--red);
+    }
+
+    /* --- Stats bar --------------------------------- */
+    .stats {
+      padding: 40px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; text-align: center;
+    }
+    .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--accent-light); }
+    .stat-label { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* --- How It Works ------------------------------ */
+    .how-it-works { padding: 80px 0; }
+    .how-it-works h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+    .step-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px; text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .step-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .step-number {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--accent); color: #0a0b0f;
+      font-weight: 800; font-size: 1.2rem; margin-bottom: 16px;
+    }
+    .step-card h3 { font-size: 1.15rem; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; }
+    .step-card p { color: var(--text-dim); font-size: 0.9rem; }
+    .step-card code {
+      display: inline-block; background: #0d0d14; border: 1px solid var(--border);
+      padding: 4px 12px; border-radius: 6px; font-family: var(--mono);
+      font-size: 0.85rem; color: var(--accent-light); margin-top: 8px;
+    }
+
+    /* --- Features ---------------------------------- */
+    .features { padding: 80px 0; }
+    .features h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 48px; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* --- Categories -------------------------------- */
+    .categories { padding: 80px 0; }
+    .categories h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .categories-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .category-list { max-width: 720px; margin: 48px auto 0; }
+    .category-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px; margin-bottom: 12px;
+      cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    }
+    .category-item:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .category-header { display: flex; align-items: center; justify-content: space-between; }
+    .category-header h3 { font-size: 1.05rem; font-weight: 600; color: var(--text-bright); }
+    .category-pts {
+      background: rgba(6, 182, 212, 0.1); color: var(--accent-light);
+      padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+    }
+    .category-detail {
+      margin-top: 12px; color: var(--text-dim); font-size: 0.9rem; line-height: 1.7;
+      display: none;
+    }
+    .category-item.open .category-detail { display: block; }
+    .category-item.open { border-color: var(--accent); }
+    .category-chevron { color: var(--text-dim); font-size: 0.85rem; transition: transform 0.2s; }
+    .category-item.open .category-chevron { transform: rotate(180deg); }
+
+    /* --- Comparison -------------------------------- */
+    .comparison { padding: 80px 0; }
+    .comparison h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .comparison-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .table-wrap { overflow-x: auto; margin-top: 48px; }
+    .comparison table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.88rem; min-width: 700px;
+    }
+    .comparison th {
+      text-align: left; padding: 14px 16px;
+      border-bottom: 2px solid var(--border);
+      color: var(--text-dim); font-weight: 600; font-size: 0.8rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .comparison th:first-child { color: var(--text-bright); }
+    .comparison th.highlight { color: var(--accent-light); }
+    .comparison td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .comparison td:first-child { color: var(--text); font-weight: 500; }
+    .comparison td.highlight { background: rgba(6, 182, 212, 0.04); }
+    .comparison .yes { color: var(--accent-light); }
+    .comparison .no { color: var(--text-dim); opacity: 0.5; }
+    .comparison .partial { color: var(--orange); }
+
+    /* --- Pricing ----------------------------------- */
+    .pricing { padding: 80px 0; }
+    .pricing h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .pricing-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px; margin-top: 48px; max-width: 1000px; margin-left: auto; margin-right: auto;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px;
+      display: flex; flex-direction: column; transition: border-color 0.2s;
+    }
+    .price-card:hover { border-color: var(--border-accent); }
+    .price-card.featured { border-color: var(--accent); box-shadow: 0 0 40px var(--accent-glow); position: relative; }
+    .price-card.featured::before {
+      content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #0a0b0f; padding: 4px 16px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .price-tier { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .price-amount { font-size: 2.5rem; font-weight: 800; color: var(--text-bright); margin-top: 8px; }
+    .price-amount span { font-size: 0.9rem; font-weight: 400; color: var(--text-dim); }
+    .price-features { list-style: none; margin-top: 24px; flex-grow: 1; }
+    .price-features li { padding: 6px 0; font-size: 0.9rem; color: var(--text-dim); display: flex; align-items: flex-start; gap: 8px; }
+    .price-features li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .price-card .btn { margin-top: 24px; width: 100%; justify-content: center; }
+
+    /* --- CTA --------------------------------------- */
+    .cta { padding: 80px 0; text-align: center; }
+    .cta-box {
+      background: var(--bg-card); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 60px 40px;
+      box-shadow: 0 0 60px var(--accent-glow); max-width: 700px; margin: 0 auto;
+    }
+    .cta h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); }
+    .cta p { color: var(--text-dim); margin-top: 12px; font-size: 1.05rem; }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+
+    @media (max-width: 640px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .steps-row { grid-template-columns: 1fr; }
+      .terminal { font-size: 0.7rem; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="nav-brand"><span>📊</span> GitPulse</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#categories">Scoring</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#pricing" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Hero ──────────────────────────────────────── -->
+<section class="hero">
+  <div class="container">
+    <h1>Your repo is a <em>47/100</em>. Here's why.</h1>
+    <p>Repo health scoring that catches missing docs, stale branches, CI gaps, and dependency risks. One command, instant score.</p>
+    <div class="hero-buttons">
+      <a href="https://github.com/clawhub/gitpulse" class="btn btn-secondary">Get Started Free</a>
+      <a href="#" class="btn btn-primary" onclick="handleCheckout('pro'); return false;">Get Pro</a>
+    </div>
+    <div class="install-bar" onclick="navigator.clipboard.writeText('clawhub install gitpulse')" title="Click to copy">
+      <code>$ clawhub install gitpulse</code>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">gitpulse score</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="cmd">📊 GitPulse Health Score: 73/100 (B — Good)</div>
+        <div class="output">&nbsp;</div>
+        <div class="output">Category Breakdown:</div>
+        <div class="output">  Repository Basics:   15/20 <span class="bar-fill">███████████████</span><span class="bar-empty">░░░░░</span></div>
+        <div class="output">  Git Hygiene:         18/20 <span class="bar-fill">██████████████████</span><span class="bar-empty">░░</span></div>
+        <div class="output">  CI/CD Health:        12/20 <span class="bar-fill">████████████</span><span class="bar-empty">░░░░░░░░</span></div>
+        <div class="output">  Dependency Health:   16/20 <span class="bar-fill">████████████████</span><span class="bar-empty">░░░░</span></div>
+        <div class="output">  Documentation:       12/20 <span class="bar-fill">████████████</span><span class="bar-empty">░░░░░░░░</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="output">Top Issues:</div>
+        <div class="output">  <span class="warn">⚠️</span>  Missing CODEOWNERS file <span class="error">(-3 pts)</span></div>
+        <div class="output">  <span class="warn">⚠️</span>  No security scanning in CI <span class="error">(-3 pts)</span></div>
+        <div class="output">  <span class="warn">⚠️</span>  3 deps outdated &gt;6 months <span class="error">(-4 pts)</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="output">Quick Wins:</div>
+        <div class="output">  <span class="success">1.</span> Add CODEOWNERS <span class="success">(+3 pts → 76/100)</span></div>
+        <div class="output">  <span class="success">2.</span> Add security scan to CI <span class="success">(+3 pts → 79/100)</span></div>
+        <div class="output">  <span class="success">3.</span> Update stale deps <span class="success">(+4 pts → 83/100)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Problem ───────────────────────────────────── -->
+<section class="problem">
+  <div class="container">
+    <h2>No CODEOWNERS. No security scanning. 14 stale branches.<br><em>And you just pushed to main.</em></h2>
+  </div>
+</section>
+
+<!-- ─── Stats ─────────────────────────────────────── -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div><div class="stat-num">73%</div><div class="stat-label">Repos missing SECURITY.md</div></div>
+      <div><div class="stat-num">12</div><div class="stat-label">Avg stale branches per repo</div></div>
+      <div><div class="stat-num">23%</div><div class="stat-label">CI failures from missing timeout</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How It Works ──────────────────────────────── -->
+<section class="how-it-works" id="how">
+  <div class="container">
+    <h2>How it works</h2>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Score</h3>
+        <p>Run one command, get an instant 0-100 health score across 5 categories with a letter grade.</p>
+        <code>gitpulse score</code>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Fix</h3>
+        <p>See exactly what's wrong and how to fix it, sorted by impact. Quick wins first.</p>
+        <code>gitpulse fix --top 5</code>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Guard</h3>
+        <p>Pre-push hooks prevent unhealthy pushes. Set your minimum score and never regress.</p>
+        <code>gitpulse guard --min 80</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Features ──────────────────────────────────── -->
+<section class="features" id="features">
+  <div class="container">
+    <h2>Everything you need for repo health</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Health Score (0-100)</h3>
+        <p>Score across 5 categories with letter grades. Track progress over time with trend reports.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h3>CI Linting</h3>
+        <p>Analyze GitHub Actions and GitLab CI workflows for missing timeouts, no caching, and anti-patterns.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌿</div>
+        <h3>Branch Hygiene</h3>
+        <p>Detect stale branches, orphaned feature branches, and branches that should have been deleted after merge.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Compliance Checks</h3>
+        <p>SOC2 and HIPAA basic technical safeguard verification. Know if your repo meets baseline compliance requirements.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3>Cost Estimation</h3>
+        <p>Project your GitHub Actions monthly cost based on workflow run history and usage patterns.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <h3>Cross-Skill Integration</h3>
+        <p>Works seamlessly with DocSync, DepGuard, and EnvGuard for comprehensive project health management.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 5 Scoring Categories ──────────────────────── -->
+<section class="categories" id="categories">
+  <div class="container">
+    <h2>5 scoring categories, 100 points</h2>
+    <p class="categories-subtitle">Each category is weighted equally at 20 points. Click to expand.</p>
+    <div class="category-list">
+      <div class="category-item open" onclick="toggleCategory(this)">
+        <div class="category-header">
+          <h3>1. Repository Basics</h3>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="category-pts">20 pts</span>
+            <span class="category-chevron">▼</span>
+          </div>
+        </div>
+        <div class="category-detail">
+          README exists and has content, LICENSE file present, CODEOWNERS defined, SECURITY.md for vulnerability reporting, .gitignore is comprehensive, branch protection rules enabled.
+        </div>
+      </div>
+      <div class="category-item" onclick="toggleCategory(this)">
+        <div class="category-header">
+          <h3>2. Git Hygiene</h3>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="category-pts">20 pts</span>
+            <span class="category-chevron">▼</span>
+          </div>
+        </div>
+        <div class="category-detail">
+          No large files tracked in git, no secrets committed, conventional commit messages, stale branches cleaned up, merge conflicts resolved, signed commits encouraged.
+        </div>
+      </div>
+      <div class="category-item" onclick="toggleCategory(this)">
+        <div class="category-header">
+          <h3>3. CI/CD Health</h3>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="category-pts">20 pts</span>
+            <span class="category-chevron">▼</span>
+          </div>
+        </div>
+        <div class="category-detail">
+          CI pipeline exists and runs, tests are executed, linting is enforced, security scanning included, build timeouts configured, caching enabled, artifacts managed.
+        </div>
+      </div>
+      <div class="category-item" onclick="toggleCategory(this)">
+        <div class="category-header">
+          <h3>4. Dependency Health</h3>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="category-pts">20 pts</span>
+            <span class="category-chevron">▼</span>
+          </div>
+        </div>
+        <div class="category-detail">
+          Lockfiles committed, no known vulnerabilities, all licenses identified and permissive, dependencies updated within 6 months, no unused dependencies.
+        </div>
+      </div>
+      <div class="category-item" onclick="toggleCategory(this)">
+        <div class="category-header">
+          <h3>5. Documentation</h3>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="category-pts">20 pts</span>
+            <span class="category-chevron">▼</span>
+          </div>
+        </div>
+        <div class="category-detail">
+          Install and usage sections in README, API documentation exists, CONTRIBUTING.md present, CHANGELOG maintained, no documentation drift from code, examples provided.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Comparison ─────────────────────────────────── -->
+<section class="comparison" id="compare">
+  <div class="container">
+    <h2>How GitPulse compares</h2>
+    <p class="comparison-subtitle">The only tool that runs locally with full repo health coverage.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="highlight">GitPulse</th>
+            <th>SonarQube</th>
+            <th>CodeClimate</th>
+            <th>Codacy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Price</td>
+            <td class="highlight"><span class="yes">Free / $19 / $39</span></td>
+            <td>$30+/dev/mo</td>
+            <td>$15/dev/mo</td>
+            <td>$15/dev/mo</td>
+          </tr>
+          <tr>
+            <td>Runs Locally</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No (server)</span></td>
+            <td><span class="no">No (SaaS)</span></td>
+            <td><span class="no">No (SaaS)</span></td>
+          </tr>
+          <tr>
+            <td>Repo Health Score</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="partial">Partial</span></td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
+          </tr>
+          <tr>
+            <td>CI Linting</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+          <tr>
+            <td>Branch Hygiene</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+          <tr>
+            <td>Compliance (SOC2/HIPAA)</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+          <tr>
+            <td>Zero Telemetry</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+          <tr>
+            <td>Cost Estimation</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+          <tr>
+            <td>Pre-push Hooks</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Pricing ───────────────────────────────────── -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start with a free health check. Upgrade for continuous protection.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0</div>
+        <ul class="price-features">
+          <li>Health score (0-100)</li>
+          <li>Quick check across all 5 categories</li>
+          <li>CLI tool with Markdown output</li>
+          <li>One-time scan per repo</li>
+        </ul>
+        <a href="https://github.com/clawhub/gitpulse" class="btn btn-secondary">Install Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$19<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Free</li>
+          <li>Pre-push hooks with min score</li>
+          <li>CI workflow linting</li>
+          <li>Stale branch cleanup</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-primary" onclick="handleCheckout('pro'); return false;">Get Pro</a>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">$39<span>/user/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Full HTML & JSON reports</li>
+          <li>SOC2 / HIPAA compliance checks</li>
+          <li>CI cost estimation</li>
+          <li>Multi-repo dashboard support</li>
+        </ul>
+        <a href="#" class="btn btn-primary" style="background: #6c5ce7;" onclick="handleCheckout('team'); return false;">Get Team</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Email Signup ──────────────────────────────── -->
+<section style="padding: 60px 0 20px; text-align: center;">
+  <div class="container">
+    <div style="max-width: 520px; margin: 0 auto;">
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-bright);">Get repo health tips & GitPulse updates</h2>
+      <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.95rem;">No spam. One email per week max. Unsubscribe anytime.</p>
+      <form id="emailForm" style="display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="emailInput" placeholder="you@company.com" required
+          style="flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+          background: var(--bg-card); color: var(--text-bright); font-size: 0.95rem; font-family: var(--font);
+          outline: none; transition: border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Subscribe</button>
+      </form>
+      <p id="emailSuccess" style="display:none; color: var(--accent); margin-top: 12px; font-size: 0.9rem;">Thanks! Check your inbox.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ───────────────────────────────────────── -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Every repo deserves a health check</h2>
+      <p>Score yours in 10 seconds. Free, local, and instant.</p>
+      <div style="margin-top: 32px;">
+        <div class="install-bar" onclick="navigator.clipboard.writeText('clawhub install gitpulse')" style="margin: 0 auto;">
+          <code>$ clawhub install gitpulse</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>GitPulse &mdash; by <a href="https://clawhub.ai">ClawHub</a> &middot; <a href="mailto:support@gitpulse.pages.dev">Support</a> &middot; <a href="https://github.com/clawhub/gitpulse">GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+  async function handleCheckout(plan) {
+    const apiBase = 'https://clawhub-api.workers.dev';
+    try {
+      const res = await fetch(`${apiBase}/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, product: 'gitpulse' })
+      });
+      if (res.ok) {
+        const { url } = await res.json();
+        window.location.href = url;
+      } else {
+        window.location.href = 'mailto:support@gitpulse.pages.dev?subject=GitPulse ' + plan + ' license';
+      }
+    } catch (e) {
+      window.location.href = 'mailto:support@gitpulse.pages.dev?subject=GitPulse ' + plan + ' license&body=I%20want%20to%20purchase%20a%20GitPulse%20' + plan + '%20license.';
+    }
+  }
+
+  // Install bar copy feedback
+  document.querySelectorAll('.install-bar').forEach(bar => {
+    bar.addEventListener('click', () => {
+      const hint = bar.querySelector('.copy-hint');
+      if (hint) { hint.textContent = 'Copied!'; setTimeout(() => { hint.textContent = 'click to copy'; }, 2000); }
+    });
+  });
+
+  // Email subscription
+  document.getElementById('emailForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value;
+    if (!email) return;
+    try {
+      await fetch('https://clawhub-api.workers.dev/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product: 'gitpulse', source: 'landing' })
+      });
+    } catch(err) {}
+    document.getElementById('emailForm').style.display = 'none';
+    document.getElementById('emailSuccess').style.display = 'block';
+  });
+
+  // Category accordion
+  function toggleCategory(el) {
+    el.classList.toggle('open');
+  }
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

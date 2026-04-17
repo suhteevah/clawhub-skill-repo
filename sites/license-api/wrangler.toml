@@ -1,0 +1,28 @@
+name = "license-api"
+main = "src/worker.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+# Set these in Cloudflare dashboard or via wrangler secret
+# STRIPE_SECRET_KEY = "sk_live_..."
+# STRIPE_WEBHOOK_SECRET = "whsec_..."
+# JWT_SECRET = "your-signing-secret"
+# ADMIN_SECRET = "your-admin-secret-for-subscriber-list"
+
+# Products and their Stripe price IDs
+# DOCSYNC_PRO_PRICE = "price_..."
+# DOCSYNC_TEAM_PRICE = "price_..."
+# DEPGUARD_PRO_PRICE = "price_..."
+# DEPGUARD_TEAM_PRICE = "price_..."
+# ENVGUARD_PRO_PRICE = "price_..."
+# ENVGUARD_TEAM_PRICE = "price_..."
+# GITPULSE_PRO_PRICE = "price_..."
+# GITPULSE_TEAM_PRICE = "price_..."
+# MIGRATESAFE_PRO_PRICE = "price_..."
+# MIGRATESAFE_TEAM_PRICE = "price_..."
+# APISHIELD_PRO_PRICE = "price_..."
+# APISHIELD_TEAM_PRICE = "price_..."
+
+[[kv_namespaces]]
+binding = "SUBSCRIBERS"
+id = "5eb3770901e4467081dcb743c4588ec5"

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APIShield — API Endpoint Security Auditor</title>
+  <meta name="description" content="API endpoint security auditor that catches missing auth, rate limits, and CORS issues before attackers do. Pre-commit scanning, 20+ checks, OWASP Top 10 mapping.">
+  <meta property="og:title" content="APIShield — API Endpoint Security Auditor">
+  <meta property="og:description" content="Your /admin endpoint has no auth. In production. APIShield finds unprotected routes before attackers do.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://apishield.dev">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%94%92</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0b0f;
+      --bg-card: #11131a;
+      --bg-card-hover: #181b24;
+      --border: #1c1f2e;
+      --border-accent: #2d3352;
+      --text: #d8dae5;
+      --text-dim: #7c8098;
+      --text-bright: #ffffff;
+      --accent: #8b5cf6;
+      --accent-light: #a78bfa;
+      --accent-glow: rgba(139, 92, 246, 0.12);
+      --red: #ff6b6b;
+      --red-glow: rgba(255, 107, 107, 0.12);
+      --orange: #fdcb6e;
+      --blue: #74b9ff;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg);
+      color: var(--text); line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* --- Nav ---------------------------------------- */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 16px 0;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { font-size: 1.25rem; font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-bright); text-decoration: none; }
+
+    /* --- Buttons ------------------------------------ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #ffffff; box-shadow: 0 0 24px var(--accent-glow); }
+    .btn-primary:hover { background: #9d74fa; transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-accent); }
+    .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent); text-decoration: none; }
+
+    /* --- Hero --------------------------------------- */
+    .hero {
+      padding: 100px 0 80px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tagline {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      padding: 8px 20px; border-radius: 40px; font-size: 0.85rem; color: var(--red);
+      font-family: var(--mono); margin-bottom: 24px; font-weight: 500;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; color: var(--text-bright);
+      line-height: 1.15; letter-spacing: -0.03em; max-width: 800px; margin: 0 auto;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent-light), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { font-size: 1.2rem; color: var(--text-dim); max-width: 600px; margin: 20px auto 0; }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+
+    .install-bar {
+      display: inline-flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; gap: 12px;
+      font-family: var(--mono); font-size: 0.85rem;
+      margin-top: 32px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .install-bar:hover { border-color: var(--accent); }
+    .install-bar code { color: var(--accent); }
+    .install-bar .copy-hint { color: var(--text-dim); font-size: 0.75rem; font-family: var(--font); }
+
+    /* --- Terminal ----------------------------------- */
+    .terminal {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      max-width: 700px; margin: 48px auto 0;
+      text-align: left; font-family: var(--mono); font-size: 0.78rem; line-height: 1.7;
+    }
+    .terminal-header { background: #16161f; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-body { padding: 16px 20px; overflow-x: auto; }
+    .prompt { color: var(--accent); }
+    .cmd { color: var(--text-bright); }
+    .output { color: var(--text-dim); }
+    .success { color: var(--accent); }
+    .warn { color: var(--orange); }
+    .error { color: var(--red); }
+
+    /* --- Stats bar --------------------------------- */
+    .stats {
+      padding: 40px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; text-align: center;
+    }
+    .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--accent-light); }
+    .stat-label { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* --- How It Works ------------------------------ */
+    .how-it-works { padding: 80px 0; }
+    .how-it-works h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+    .step-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px; text-align: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .step-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .step-number {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--accent); color: #ffffff;
+      font-weight: 800; font-size: 1.2rem; margin-bottom: 16px;
+    }
+    .step-card h3 { font-size: 1.15rem; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; }
+    .step-card p { color: var(--text-dim); font-size: 0.9rem; }
+    .step-card code {
+      display: inline-block; background: #0d0d14; border: 1px solid var(--border);
+      padding: 4px 12px; border-radius: 6px; font-family: var(--mono);
+      font-size: 0.85rem; color: var(--accent-light); margin-top: 8px;
+    }
+
+    /* --- Features ---------------------------------- */
+    .features { padding: 80px 0; }
+    .features h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 48px; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* --- Comparison -------------------------------- */
+    .comparison { padding: 80px 0; }
+    .comparison h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .comparison-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .table-wrap { overflow-x: auto; margin-top: 48px; }
+    .comparison table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.88rem; min-width: 700px;
+    }
+    .comparison th {
+      text-align: left; padding: 14px 16px;
+      border-bottom: 2px solid var(--border);
+      color: var(--text-dim); font-weight: 600; font-size: 0.8rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .comparison th:first-child { color: var(--text-bright); }
+    .comparison th.highlight { color: var(--accent-light); }
+    .comparison td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .comparison td:first-child { color: var(--text); font-weight: 500; }
+    .comparison td.highlight { background: rgba(139, 92, 246, 0.04); }
+    .comparison .yes { color: var(--accent-light); }
+    .comparison .no { color: var(--text-dim); opacity: 0.5; }
+    .comparison .partial { color: var(--orange); }
+
+    /* --- Pricing ----------------------------------- */
+    .pricing { padding: 80px 0; }
+    .pricing h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .pricing-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px; margin-top: 48px; max-width: 1000px; margin-left: auto; margin-right: auto;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px;
+      display: flex; flex-direction: column; transition: border-color 0.2s;
+    }
+    .price-card:hover { border-color: var(--border-accent); }
+    .price-card.featured { border-color: var(--accent); box-shadow: 0 0 40px var(--accent-glow); position: relative; }
+    .price-card.featured::before {
+      content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #ffffff; padding: 4px 16px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .price-tier { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .price-amount { font-size: 2.5rem; font-weight: 800; color: var(--text-bright); margin-top: 8px; }
+    .price-amount span { font-size: 0.9rem; font-weight: 400; color: var(--text-dim); }
+    .price-features { list-style: none; margin-top: 24px; flex-grow: 1; }
+    .price-features li { padding: 6px 0; font-size: 0.9rem; color: var(--text-dim); display: flex; align-items: flex-start; gap: 8px; }
+    .price-features li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .price-card .btn { margin-top: 24px; width: 100%; justify-content: center; }
+
+    /* --- CTA --------------------------------------- */
+    .cta { padding: 80px 0; text-align: center; }
+    .cta-box {
+      background: var(--bg-card); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 60px 40px;
+      box-shadow: 0 0 60px var(--accent-glow); max-width: 700px; margin: 0 auto;
+    }
+    .cta h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); }
+    .cta p { color: var(--text-dim); margin-top: 12px; font-size: 1.05rem; }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+
+    @media (max-width: 640px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .steps-row { grid-template-columns: 1fr; }
+      .terminal { font-size: 0.7rem; }
+      .nav-links { gap: 12px; }
+      .nav-links a:not(.btn) { display: none; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="nav-brand"><span>&#x1f512;</span> APIShield</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#compare">Compare</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://github.com/suhteevah/apishield" class="nav-links">GitHub</a>
+      <a href="#pricing" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-tagline">Your /admin endpoint has no auth. In production.</div>
+    <h1>Find <em>unprotected API routes</em> before attackers do</h1>
+    <p>API endpoint security auditor. Scans your route files for missing auth, rate limits, CORS misconfigs, and input validation gaps. All locally, pre-commit.</p>
+    <div class="hero-buttons">
+      <a href="#pricing" class="btn btn-primary">Get APIShield Pro</a>
+      <a href="https://github.com/suhteevah/apishield" class="btn btn-secondary">View on GitHub</a>
+    </div>
+    <div class="install-bar" onclick="copyInstall(this, 'brew install lefthook && clawhub install apishield')" title="Click to copy">
+      <code>$ brew install lefthook && clawhub install apishield</code>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">git commit -m "add user endpoints"</span></div>
+        <div class="output">&nbsp;</div>
+        <div class="cmd">&#x1f512; APIShield: Scanning route files...</div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="error">!! CRITICAL</span> &nbsp;&nbsp;<span class="output">routes/admin.js:14</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">POST /admin/users</span> <span class="output">&mdash; No auth middleware detected</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">Risk: Unauthenticated admin access</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="warn">!&nbsp; HIGH</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">routes/api.js:28</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">GET /api/users</span> <span class="output">&mdash; No rate limiting</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">Risk: Enumeration/DoS attack vector</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="warn">!&nbsp; MEDIUM</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">routes/api.js:45</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">Access-Control-Allow-Origin: *</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">Risk: Overly permissive CORS</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="error">Security Score: 34/100 (CRITICAL)</span></div>
+        <div>&nbsp;&nbsp;<span class="output">3 issues found (1 critical, 1 high, 1 medium)</span></div>
+        <div>&nbsp;&nbsp;<span class="error">Commit blocked.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div><div class="stat-num">43%</div><div class="stat-label">of API breaches from missing auth</div></div>
+      <div><div class="stat-num">$6.1M</div><div class="stat-label">avg cost of an API breach</div></div>
+      <div><div class="stat-num">3 in 5</div><div class="stat-label">APIs with a critical vulnerability</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works" id="how">
+  <div class="container">
+    <h2>How it works</h2>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Install</h3>
+        <p>One command installs APIShield and configures pre-commit hooks via Lefthook. Works with any Node, Python, Go, or Ruby project.</p>
+        <code>clawhub install apishield</code>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Build APIs</h3>
+        <p>Write your routes and endpoints as usual. Express, Fastify, Flask, Django, Gin, Rails &mdash; APIShield supports them all.</p>
+        <code>router.post('/admin/users', handler)</code>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Audit</h3>
+        <p>Every commit triggers a security scan. Missing auth, open CORS, no rate limits &mdash; all caught before code leaves your machine.</p>
+        <code>git commit -m "ship it"</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <h2>Comprehensive API security checks</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#x1f6e1;&#xfe0f;</div>
+        <h3>Auth Middleware Detection</h3>
+        <p>Detects routes missing authentication middleware. Catches unprotected admin endpoints, public access to sensitive data, and missing JWT/session validation.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x23f1;&#xfe0f;</div>
+        <h3>Rate Limit Analysis</h3>
+        <p>Identifies endpoints without rate limiting. Prevents brute force attacks, enumeration, and DoS vectors on login, search, and data-fetching routes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1f310;</div>
+        <h3>CORS Validation</h3>
+        <p>Flags overly permissive CORS configurations like wildcard origins, missing credential restrictions, and exposed headers that leak sensitive data.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1f50d;</div>
+        <h3>Input Validation</h3>
+        <p>Checks that request bodies, query params, and URL parameters are validated and sanitized. Catches SQL injection, XSS, and prototype pollution vectors.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1f4cb;</div>
+        <h3>API Inventory</h3>
+        <p>Automatically catalogs every endpoint across your codebase. Full inventory of routes, methods, middleware chains, and security posture at a glance.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1f3af;</div>
+        <h3>OWASP Top 10</h3>
+        <p>Maps every finding to the OWASP API Security Top 10. Know exactly which compliance categories your API fails and how to remediate them.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section class="comparison" id="compare">
+  <div class="container">
+    <h2>How APIShield compares</h2>
+    <p class="comparison-subtitle">The only pre-commit API security scanner that runs 100% locally.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="highlight">APIShield</th>
+            <th>StackHawk</th>
+            <th>Snyk API</th>
+            <th>OWASP ZAP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Price</td>
+            <td class="highlight"><span class="yes">Free / $19 / $39</span></td>
+            <td>$35/dev/mo</td>
+            <td>$25/dev/mo</td>
+            <td>Free</td>
+          </tr>
+          <tr>
+            <td>Runs Locally</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="partial">Partial</span></td>
+            <td><span class="no">No (SaaS)</span></td>
+            <td><span class="yes">Yes</span></td>
+          </tr>
+          <tr>
+            <td>Pre-commit Hook</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+          <tr>
+            <td>Static Analysis</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No (DAST)</span></td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="no">No (DAST)</span></td>
+          </tr>
+          <tr>
+            <td>Multi-framework (6+)</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="partial">Partial</span></td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="partial">Partial</span></td>
+          </tr>
+          <tr>
+            <td>Zero Telemetry</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="no">No</span></td>
+            <td><span class="yes">Yes</span></td>
+          </tr>
+          <tr>
+            <td>OWASP Mapping</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="partial">Partial</span></td>
+            <td><span class="yes">Yes</span></td>
+          </tr>
+          <tr>
+            <td>Auth Detection</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="partial">Partial</span></td>
+            <td><span class="partial">Partial</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+          <tr>
+            <td>API Inventory</td>
+            <td class="highlight"><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="yes">Yes</span></td>
+            <td><span class="no">No</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start free. Upgrade when your API surface grows.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0</div>
+        <ul class="price-features">
+          <li>Scan up to 5 route files</li>
+          <li>Basic auth detection</li>
+          <li>Console output</li>
+          <li>All supported frameworks</li>
+        </ul>
+        <a href="https://github.com/suhteevah/apishield" class="btn btn-secondary">Install Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$19<span>/mo</span></div>
+        <ul class="price-features">
+          <li>Unlimited scanning</li>
+          <li>20+ security checks</li>
+          <li>Rate limit analysis</li>
+          <li>CORS validation</li>
+          <li>Input validation checks</li>
+          <li>CI/CD integration</li>
+          <li>HTML &amp; JSON reports</li>
+        </ul>
+        <a href="#" class="btn btn-primary" onclick="handleCheckout('pro'); return false;">Get Pro</a>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">$39<span>/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>25 seats included</li>
+          <li>API inventory &amp; cataloging</li>
+          <li>Cross-service auth analysis</li>
+          <li>OWASP Top 10 mapping</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-primary" style="background: #6d28d9;" onclick="handleCheckout('team'); return false;">Get Team</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Email Signup -->
+<section style="padding: 60px 0 20px; text-align: center;">
+  <div class="container">
+    <div style="max-width: 520px; margin: 0 auto;">
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-bright);">Get API security tips &amp; APIShield updates</h2>
+      <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.95rem;">No spam. One email per week max. Unsubscribe anytime.</p>
+      <form id="emailForm" style="display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="emailInput" placeholder="you@company.com" required
+          style="flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+          background: var(--bg-card); color: var(--text-bright); font-size: 0.95rem; font-family: var(--font);
+          outline: none; transition: border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Subscribe</button>
+      </form>
+      <p id="emailSuccess" style="display:none; color: var(--accent); margin-top: 12px; font-size: 0.9rem;">Thanks! Check your inbox.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Your API has unprotected routes. APIShield finds them before attackers do.</h2>
+      <p>Scan your endpoints in seconds. Free, local, and instant.</p>
+      <div style="margin-top: 32px;">
+        <div class="install-bar" onclick="copyInstall(this, 'brew install lefthook && clawhub install apishield')" style="margin: 0 auto;">
+          <code>$ brew install lefthook && clawhub install apishield</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>APIShield &mdash; by <a href="https://clawhub.ai">ClawHub</a> &middot; <a href="mailto:support@apishield.dev">Support</a> &middot; <a href="https://github.com/suhteevah/apishield">GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+  async function handleCheckout(plan) {
+    const apiBase = 'https://clawhub-api.workers.dev';
+    try {
+      const res = await fetch(`${apiBase}/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, product: 'apishield' })
+      });
+      if (res.ok) {
+        const { url } = await res.json();
+        window.location.href = url;
+      } else {
+        window.location.href = 'mailto:support@apishield.dev?subject=APIShield ' + plan + ' license';
+      }
+    } catch (e) {
+      window.location.href = 'mailto:support@apishield.dev?subject=APIShield ' + plan + ' license&body=I%20want%20to%20purchase%20an%20APIShield%20' + plan + '%20license.';
+    }
+  }
+
+  // Copy install command
+  function copyInstall(el, text) {
+    navigator.clipboard.writeText(text);
+    const hint = el.querySelector('.copy-hint');
+    if (hint) { hint.textContent = 'Copied!'; setTimeout(() => { hint.textContent = 'click to copy'; }, 2000); }
+  }
+
+  // Email subscription
+  document.getElementById('emailForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value;
+    if (!email) return;
+    try {
+      await fetch('https://clawhub-api.workers.dev/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product: 'apishield', source: 'landing' })
+      });
+    } catch(err) {}
+    document.getElementById('emailForm').style.display = 'none';
+    document.getElementById('emailSuccess').style.display = 'block';
+  });
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

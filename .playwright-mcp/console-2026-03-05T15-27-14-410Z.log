@@ -1,0 +1,5 @@
+[    1135ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://indie-hackers.firebaseapp.com/favicon.ico:0
+[    2286ms] [WARNING] Error parsing a meta element's content: ';' is not a valid key-value pair separator. Please use ',' instead. @ https://api.twitter.com/oauth/authenticate?oauth_token=QkN0VgAAAAAAw4LsAAABnL6cT1U&context_uri=https%3A%2F%2Fwww.indiehackers.com:6
+[    3151ms] [WARNING] Error parsing a meta element's content: ';' is not a valid key-value pair separator. Please use ',' instead. @ https://api.x.com/oauth/authenticate?oauth_token=QkN0VgAAAAAAw4LsAAABnL6cT1U&context_uri=https%3A%2F%2Fwww.indiehackers.com:6
+[   17732ms] [WARNING] Error parsing a meta element's content: ';' is not a valid key-value pair separator. Please use ',' instead. @ https://x.com/oauth/authorize:7
+[    1135ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://indie-hackers.firebaseapp.com/favicon.ico:0

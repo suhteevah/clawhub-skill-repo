@@ -1,0 +1,14 @@
+[     711ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://www.upwork.com/nx/proposals/invitations:0
+[     961ms] [WARNING] required meta.pageId missed. Route [null] @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[     979ms] [WARNING] required meta.pageId missed. Route [null] @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[    1015ms] [WARNING] HTTP 404 Not Found, Route: "/nx/proposals/invitations" @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[    1024ms] [WARNING] required meta.pageId missed. Route [null] @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[    1313ms] [WARNING] [SUIT]: unexpected key type for (location), expected string got undefined {event: impression, sublocation: page, label: general_pv, data: Object, location: undefined} @ https://www.upwork.com/static/suit2-tracker/0.3.50/index.iife.min.js:0
+[    1313ms] [WARNING] [SUIT]: unexpected key type for (location), expected string got undefined @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[    1318ms] [ERROR] [SUIT]: snowplow tracker encountered invalid value for required key (location) {event: impression, sublocation: page, label: general_pv, data: Object, location: undefined} @ https://www.upwork.com/static/suit2-tracker/0.3.50/index.iife.min.js:0
+[    1318ms] [ERROR] [SUIT]: snowplow tracker encountered invalid value for required key (location) @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[    1319ms] [WARNING] [SUIT]: unexpected key type for (location), expected string got undefined {event: impression, sublocation: topnavbar, label: freelancer-nav-rework, data: Object, location: undefined} @ https://www.upwork.com/static/suit2-tracker/0.3.50/index.iife.min.js:0
+[    1320ms] [WARNING] [SUIT]: unexpected key type for (location), expected string got undefined @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[    1464ms] [ERROR] [SUIT]: snowplow tracker encountered invalid value for required key (location) {event: impression, sublocation: topnavbar, label: freelancer-nav-rework, data: Object, location: undefined} @ https://www.upwork.com/static/suit2-tracker/0.3.50/index.iife.min.js:0
+[    1465ms] [ERROR] [SUIT]: snowplow tracker encountered invalid value for required key (location) @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[    5983ms] [WARNING] SUIT2: Tracking location has not been set for this route. @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1

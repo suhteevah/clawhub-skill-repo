@@ -1,0 +1,18 @@
+[    1388ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://www.upwork.com/freelancers/~01e8c7e8330bc13f07?create-service-profile=1:0
+[    3773ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOriginAfterDefaultedToSameOriginByCoep @ https://upwork.com/favicon.ico:0
+[    4583ms] [ERROR] %c%d font-size:0;color:transparent NaN @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/ov2/av0/rch/acp1d/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal?lang=auto:0
+[    4583ms] [ERROR] %c%d font-size:0;color:transparent NaN @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/ov2/av0/rch/acp1d/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal?lang=auto:0
+[    4589ms] [WARNING] %c%d font-size:0;color:transparent NaN @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/ov2/av0/rch/acp1d/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal?lang=auto:0
+[    4589ms] [WARNING] %c%d font-size:0;color:transparent NaN @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/ov2/av0/rch/acp1d/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal?lang=auto:0
+[    4888ms] [ERROR]  Note that 'script-src' was not explicitly set, so 'default-src' is used as a fallback. @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/ov2/av0/rch/acp1d/0x4AAAAAAADnPIDROrmt1Wwj/light/fbE/new/normal?lang=auto:0
+[    5482ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/pat/9d22f504df8aa495/1771810218158/d22eea0bb74c55bc255e5484fd155f8a74fe6cfb850f843d10431ceb9d0b6652/b9vwWJ1KqXf0S79:0
+[    9291ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOriginAfterDefaultedToSameOriginByCoep @ https://upwork.com/favicon.ico:0
+[   11932ms] [ERROR] Error: Attempted to reAuth at /ab/account-security/login, but user is not authenticated.
+    at https://www.upwork.com/static/assets/FreelancerProfileNuxt/app.dc5c1fd0.js:2:154984
+    at async h (https://www.upwork.com/static/assets/FreelancerProfileNuxt/app.dc5c1fd0.js:2:152766)
+    at async a.c (https://www.upwork.com/static/assets/FreelancerProfileNuxt/app.dc5c1fd0.js:2:69772)
+    at async a.showNewFeaturePopover (https://www.upwork.com/static/assets/FreelancerProfileNuxt/pages/visitor.30b281fd.js:2:480289) @ https://www.upwork.com/static/assets/FreelancerProfileNuxt/app.dc5c1fd0.js:1
+[   11934ms] [ERROR] ReAuthError: Auth failed and reAuth failed to obtain ccst token. Attempted to reAuth at /ab/account-security/login, but user is not authenticated. Did not redirect user to login page. requestUrl: , requestAlias: get-user-pref, reAuthReason: empty token
+    at h (https://www.upwork.com/static/assets/FreelancerProfileNuxt/app.dc5c1fd0.js:2:152990)
+    at async a.c (https://www.upwork.com/static/assets/FreelancerProfileNuxt/app.dc5c1fd0.js:2:69772)
+    at async a.showNewFeaturePopover (https://www.upwork.com/static/assets/FreelancerProfileNuxt/pages/visitor.30b281fd.js:2:480289) @ https://www.upwork.com/static/assets/FreelancerProfileNuxt/app.dc5c1fd0.js:1

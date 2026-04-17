@@ -1,0 +1,455 @@
+Resuming — 5 already published
+DONE: accesslint (already published)
+DONE: apishield (already published)
+DONE: asyncguard (already published)
+DONE: authaudit (already published)
+DONE: bundlephobia (already published)
+Publishing cachelint... - Preparing cachelint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing cloudguard... - Preparing cloudguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing concurrencyguard... - Preparing concurrencyguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing configsafe... - Preparing configsafe@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing containerlint... - Preparing containerlint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing cronlint... - Preparing cronlint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing cryptolint... - Preparing cryptolint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing dateguard... - Preparing dateguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing deadcode... - Preparing deadcode@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing doccoverage... - Preparing doccoverage@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing envguard... - Preparing envguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing errorlens... - Preparing errorlens@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing eventlint... - Preparing eventlint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing featurelint... - Preparing featurelint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing gqllint... - Preparing gqllint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing httplint... - Preparing httplint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing i18ncheck... - Preparing i18ncheck@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing inputshield... - Preparing inputshield@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing licenseguard... - Preparing licenseguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing logsentry... - Preparing logsentry@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing memguard... - Preparing memguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing migratesafe... - Preparing migratesafe@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing perfguard... - Preparing perfguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing pipelinelint... - Preparing pipelinelint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing ratelint... - Preparing ratelint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing regexguard... - Preparing regexguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing retrylint... - Preparing retrylint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing schemalint... - Preparing schemalint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing secretscan... - Preparing secretscan@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing serdelint... - Preparing serdelint@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing sqlguard... - Preparing sqlguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing styleguard... - Preparing styleguard@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing testgap... - Preparing testgap@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+Publishing typedrift... - Preparing typedrift@1.0.0
+[31m✖[39m Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+Error: Uncaught ConvexError: Rate limit: max 5 new skills per hour. Please wait before publishing more.
+    at enforceNewSkillRateLimit (../../convex/skills.ts:693:6)
+    at handler (../../convex/skills.ts:6313:6)
+    at async handler (../../node_modules/convex-helpers/server/customFunctions.js:268:27)
+
+FAILED
+  Unexpected failure — skipping
+
+=========================================
+  Published: 0
+  Failed:    34
+  Skipped:   5
+  Total:     39
+=========================================

@@ -1,0 +1,3 @@
+[    1630ms] [WARNING] [SUIT]: deprecated legacy prefix stripped from event keys {trackingSublocation: proposal-views-tooltip, trackingEvent: impression, trackingLabel: proposal-views-tooltip-open} {sublocation: proposal-views-tooltip, event: impression, label: proposal-views-tooltip-open} @ https://www.upwork.com/static/suit2-tracker/0.3.50/index.iife.min.js:0
+[    1631ms] [WARNING] [SUIT]: deprecated legacy prefix stripped from event keys @ https://www.upwork.com/static/assets/FreelancerProposalsManagerNuxt/app.2284e7b2.js:1
+[   21383ms] [WARNING] Websocket closed, reason: Connection was closed abnormally (that is, with no close frame being sent). - wasClean: false @ https://www.upwork.com/static/dash-api/1.3.2/dash-api.min.js:0

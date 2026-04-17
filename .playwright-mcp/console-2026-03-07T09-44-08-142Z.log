@@ -1,0 +1,6 @@
+[    1774ms] [ERROR] A bad HTTP response code (404) was received when fetching the script. @ :0
+[    1816ms] [ERROR] Hydration completed but contains mismatches. @ https://www.upwork.com/static/assets/JobDetailsNuxt/_nuxt/entry.DsIukgAu.js:17
+[    1886ms] [WARNING] [SUIT]: olog is deprecated, remove it from the trackers array - CI-15888 @ https://www.upwork.com/static/suit2-tracker/0.3.50/index.iife.min.js:0
+[    1886ms] [WARNING] [SUIT]: olog is deprecated, remove it from the trackers array - CI-15888 @ https://www.upwork.com/static/assets/JobDetailsNuxt/_nuxt/entry.DsIukgAu.js:67
+[   29727ms] [WARNING] [SUIT]: unexpected key (prefix) removed from event {event: click, sublocation: jobdetails_righaisle, label: submit_proposal, prefix: , data: Object} @ https://www.upwork.com/static/suit2-tracker/0.3.50/index.iife.min.js:0
+[   29728ms] [WARNING] [SUIT]: unexpected key (prefix) removed from event @ https://www.upwork.com/static/assets/JobDetailsNuxt/_nuxt/entry.DsIukgAu.js:67

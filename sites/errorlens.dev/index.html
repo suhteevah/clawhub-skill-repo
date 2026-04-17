@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ErrorLens — Error Handling & Exception Safety Analyzer</title>
+  <meta name="description" content="Find dangerous error handling patterns: empty catch blocks, swallowed exceptions, missing error boundaries, unhandled promise rejections. 90+ patterns across 6 categories. 100% local.">
+  <meta property="og:title" content="ErrorLens — Error Handling & Exception Safety Analyzer">
+  <meta property="og:description" content="Your catch blocks are lying to you. ErrorLens finds empty catches, swallowed exceptions, and missing error boundaries before they silently destroy your app.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://errorlens.pages.dev">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%94%8D</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0b0f;
+      --bg-card: #11131a;
+      --bg-card-hover: #181b24;
+      --border: #1c1f2e;
+      --border-accent: #2d3352;
+      --text: #d8dae5;
+      --text-dim: #7c8098;
+      --text-bright: #ffffff;
+      --accent: #e17055;
+      --accent-light: #fab1a0;
+      --accent-glow: rgba(225, 112, 85, 0.12);
+      --red: #ff6b6b;
+      --red-glow: rgba(255, 107, 107, 0.12);
+      --orange: #fdcb6e;
+      --blue: #74b9ff;
+      --green: #00b894;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg);
+      color: var(--text); line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* --- Nav ---------------------------------------- */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 16px 0;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { font-size: 1.25rem; font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-bright); text-decoration: none; }
+
+    /* --- Buttons ------------------------------------ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 0 24px var(--accent-glow); }
+    .btn-primary:hover { background: #e8856e; transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-accent); }
+    .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent); text-decoration: none; }
+
+    /* --- Hero --------------------------------------- */
+    .hero {
+      padding: 100px 0 80px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; color: var(--text-bright);
+      line-height: 1.15; letter-spacing: -0.03em; max-width: 720px; margin: 0 auto;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent), var(--red));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { font-size: 1.2rem; color: var(--text-dim); max-width: 620px; margin: 20px auto 0; }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+
+    .install-bar {
+      display: inline-flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; gap: 12px;
+      font-family: var(--mono); font-size: 0.9rem;
+      margin-top: 32px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .install-bar:hover { border-color: var(--accent); }
+    .install-bar code { color: var(--accent); }
+    .install-bar .copy-hint { color: var(--text-dim); font-size: 0.75rem; font-family: var(--font); }
+
+    /* --- Terminal ----------------------------------- */
+    .terminal {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      max-width: 720px; margin: 48px auto 0;
+      text-align: left; font-family: var(--mono); font-size: 0.82rem; line-height: 1.8;
+    }
+    .terminal-header { background: #16161f; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-body { padding: 16px 20px; }
+    .prompt { color: var(--accent); }
+    .cmd { color: var(--text-bright); }
+    .output { color: var(--text-dim); }
+    .success { color: var(--green); }
+    .warn { color: var(--orange); }
+    .error { color: var(--red); }
+
+    /* --- Problem Section --------------------------- */
+    .problem { padding: 80px 0; text-align: center; }
+    .problem h2 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; color: var(--text-bright);
+      max-width: 700px; margin: 0 auto;
+    }
+    .problem h2 em { font-style: normal; color: var(--red); }
+
+    /* --- Stats bar --------------------------------- */
+    .stats {
+      padding: 40px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; text-align: center;
+    }
+    .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--accent-light); }
+    .stat-num.danger { color: var(--red); }
+    .stat-label { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* --- Features ---------------------------------- */
+    .features { padding: 80px 0; }
+    .features h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 48px; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; }
+    .feature-card .tag { display: inline-block; font-family: var(--mono); font-size: 0.7rem; font-weight: 600; color: var(--accent); background: var(--accent-glow); border: 1px solid rgba(225,112,85,0.25); border-radius: 4px; padding: 2px 8px; margin-bottom: 10px; }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* --- Before/After ------------------------------ */
+    .beforeafter { padding: 80px 0; }
+    .beforeafter h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; margin-bottom: 48px; }
+    .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 900px; margin: 0 auto; }
+    .ba-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+    .ba-col.bad { border-color: rgba(255,107,107,0.3); }
+    .ba-col.good { border-color: rgba(0,184,148,0.3); }
+    .ba-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-weight: 700; font-size: 1rem; }
+    .ba-header.bad { color: var(--red); }
+    .ba-header.good { color: var(--green); }
+    .ba-item { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: var(--text-dim); display: flex; align-items: flex-start; gap: 10px; }
+    .ba-item:last-child { border-bottom: none; }
+    .ba-icon { flex-shrink: 0; font-size: 0.85rem; margin-top: 2px; }
+
+    /* --- Pricing ----------------------------------- */
+    .pricing { padding: 80px 0; }
+    .pricing h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .pricing-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-top: 48px; max-width: 1000px; margin-left: auto; margin-right: auto;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px;
+      display: flex; flex-direction: column; transition: border-color 0.2s;
+    }
+    .price-card:hover { border-color: var(--border-accent); }
+    .price-card.featured { border-color: var(--accent); box-shadow: 0 0 40px var(--accent-glow); position: relative; }
+    .price-card.featured::before {
+      content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #fff; padding: 4px 16px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .price-tier { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .price-amount { font-size: 2.5rem; font-weight: 800; color: var(--text-bright); margin-top: 8px; }
+    .price-amount span { font-size: 0.9rem; font-weight: 400; color: var(--text-dim); }
+    .price-features { list-style: none; margin-top: 24px; flex-grow: 1; }
+    .price-features li { padding: 6px 0; font-size: 0.9rem; color: var(--text-dim); display: flex; align-items: flex-start; gap: 8px; }
+    .price-features li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .price-card .btn { margin-top: 24px; width: 100%; justify-content: center; }
+
+    /* --- CTA --------------------------------------- */
+    .cta { padding: 80px 0; text-align: center; }
+    .cta-box {
+      background: var(--bg-card); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 60px 40px;
+      box-shadow: 0 0 60px var(--accent-glow); max-width: 700px; margin: 0 auto;
+    }
+    .cta h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); }
+    .cta p { color: var(--text-dim); margin-top: 12px; font-size: 1.05rem; }
+
+    /* --- Score badge ------------------------------- */
+    .score-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--red-glow); border: 1px solid var(--red);
+      border-radius: 8px; padding: 6px 14px; margin-top: 8px;
+      font-family: var(--mono); font-size: 0.85rem;
+    }
+    .score-grade { font-weight: 800; color: var(--red); font-size: 1.1rem; }
+    .score-text { color: var(--text-dim); }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+    footer a { color: var(--accent-light); }
+
+    @media (max-width: 640px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .ba-grid { grid-template-columns: 1fr; }
+      .nav-links { gap: 14px; }
+      .nav-links a.hide-mobile { display: none; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="nav-brand"><span>&#x1F50D;</span> ErrorLens</div>
+    <div class="nav-links">
+      <a href="#features" class="hide-mobile">Features</a>
+      <a href="#beforeafter" class="hide-mobile">Before/After</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://github.com/suhteevah/errorlens">GitHub</a>
+      <a href="#pricing" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>Your catch blocks are <em>lying to you.</em></h1>
+    <p>Empty catches, swallowed exceptions, missing error boundaries, unhandled promise rejections &mdash; they're silently destroying your app. ErrorLens finds every one of them.</p>
+    <div class="hero-buttons">
+      <a href="https://github.com/suhteevah/errorlens" class="btn btn-secondary">Get Started Free</a>
+      <a href="#pricing" class="btn btn-primary">Get Pro</a>
+    </div>
+    <div class="install-bar" title="Click to copy">
+      <code>$ clawhub install errorlens</code>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <!-- Terminal Demo -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">errorlens scan</span></div>
+        <div style="color: var(--accent);">&#x1F50D; ErrorLens v1.0.0</div>
+        <div class="output">&nbsp;</div>
+        <div class="output">Scanning 87 files across 6 languages...</div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="cmd">src/api/users.ts:34</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="error">&#x2717; [EC-001] Empty catch block &mdash; exception silently swallowed</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Log the error or re-throw with context</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="cmd">src/hooks/useAuth.tsx:19</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="error">&#x2717; [EB-003] React component missing ErrorBoundary wrapper</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Wrap with &lt;ErrorBoundary&gt; to prevent full-page crash</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="cmd">src/services/payment.py:52</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="error">&#x2717; [SE-012] Exception caught but only partially logged</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Preserve full stack trace &mdash; don't discard exception info</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="cmd">src/workers/queue.js:88</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="warn">&#x26A0; [RP-007] Promise chain missing .catch() handler</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Add .catch() or use try/await to handle rejection</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="output">───────────────────────────────────────</span></div>
+        <div>&nbsp;&nbsp;<span class="output">Score: </span><span class="error">31/100</span><span class="output"> (Grade: </span><span class="error">F</span><span class="output">)</span><span class="output">&nbsp;&nbsp;|&nbsp;&nbsp;</span><span class="error">6 critical</span>&nbsp;&nbsp;<span class="warn">4 high</span>&nbsp;&nbsp;<span style="color: var(--blue);">2 medium</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Problem Statement -->
+<section class="problem">
+  <div class="container">
+    <h2>Every empty catch block is a <em>ticking time bomb.</em></h2>
+    <p style="color: var(--text-dim); margin-top: 16px; font-size: 1.05rem; max-width: 640px; margin-left: auto; margin-right: auto;">Your app isn't crashing &mdash; it's <strong style="color: var(--text);">failing silently</strong>. Swallowed exceptions hide bugs for weeks. Missing error boundaries take down entire pages. Generic catch-all handlers turn recoverable errors into data corruption. ErrorLens scans your codebase across JS/TS, Python, Java, Go, Rust, and C# to surface every dangerous pattern before production does it for you.</p>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div><div class="stat-num">90+</div><div class="stat-label">Detection patterns</div></div>
+      <div><div class="stat-num">6</div><div class="stat-label">Pattern categories</div></div>
+      <div><div class="stat-num">6</div><div class="stat-label">Languages supported</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">Local &mdash; zero telemetry</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Features / What ErrorLens Catches -->
+<section class="features" id="features">
+  <div class="container">
+    <h2>What ErrorLens Catches</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="tag">EC</div>
+        <div class="feature-icon">&#x1F6AB;</div>
+        <h3>Empty Catch Blocks</h3>
+        <p>Detects catch blocks with no logic &mdash; no logging, no re-throw, no handling at all. The most common source of invisible failures in every codebase.</p>
+      </div>
+      <div class="feature-card">
+        <div class="tag">SE</div>
+        <div class="feature-icon">&#x1F910;</div>
+        <h3>Swallowed Exceptions</h3>
+        <p>Catches exceptions that are caught and partially handled but lose critical context: stripped stack traces, discarded causes, or logged then ignored.</p>
+      </div>
+      <div class="feature-card">
+        <div class="tag">EB</div>
+        <div class="feature-icon">&#x1F6E1;&#xFE0F;</div>
+        <h3>Missing Error Boundaries</h3>
+        <p>Finds React components without ErrorBoundary wrappers, Express routes without error middleware, and API handlers with no top-level protection.</p>
+      </div>
+      <div class="feature-card">
+        <div class="tag">GE</div>
+        <div class="feature-icon">&#x1F3AF;</div>
+        <h3>Generic Error Types</h3>
+        <p>Flags overly broad catches like <code style="font-size:0.8rem;">catch(Exception e)</code> or bare <code style="font-size:0.8rem;">except:</code> that mask specific failure modes and make debugging impossible.</p>
+      </div>
+      <div class="feature-card">
+        <div class="tag">RP</div>
+        <div class="feature-icon">&#x1F4A5;</div>
+        <h3>Rejected Promises</h3>
+        <p>Surfaces promise chains missing <code style="font-size:0.8rem;">.catch()</code>, async functions without try/catch, and event handlers that silently drop rejections.</p>
+      </div>
+      <div class="feature-card">
+        <div class="tag">IL</div>
+        <div class="feature-icon">&#x1F504;</div>
+        <h3>Incomplete Lifecycle</h3>
+        <p>Detects missing <code style="font-size:0.8rem;">finally</code> blocks for resource cleanup, unclosed connections in error paths, and try blocks without proper teardown logic.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Before / After -->
+<section class="beforeafter" id="beforeafter">
+  <div class="container">
+    <h2>Without ErrorLens vs. With ErrorLens</h2>
+    <div class="ba-grid">
+      <div class="ba-col bad">
+        <div class="ba-header bad">&#x2717; Without ErrorLens</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--red);">&#x2717;</span> Empty catch blocks hide failures for weeks</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--red);">&#x2717;</span> Swallowed exceptions corrupt data silently</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--red);">&#x2717;</span> One component crash takes down the entire page</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--red);">&#x2717;</span> Unhandled rejections crash Node processes at 3 AM</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--red);">&#x2717;</span> Generic catches mask the real failure mode</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--red);">&#x2717;</span> Missing finally blocks leak DB connections</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--red);">&#x2717;</span> Hours of debugging &mdash; "it works on my machine"</div>
+      </div>
+      <div class="ba-col good">
+        <div class="ba-header good">&#x2713; With ErrorLens</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--green);">&#x2713;</span> Every empty catch flagged before commit</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--green);">&#x2713;</span> Stack traces preserved with full context</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--green);">&#x2713;</span> Error boundaries enforced at every route</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--green);">&#x2713;</span> Every promise chain has a rejection handler</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--green);">&#x2713;</span> Specific exception types catch specific failures</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--green);">&#x2713;</span> Resource cleanup guaranteed in finally blocks</div>
+        <div class="ba-item"><span class="ba-icon" style="color:var(--green);">&#x2713;</span> Error safety score tracked per commit</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start scanning for free. Upgrade when your error handling demands it.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0</div>
+        <ul class="price-features">
+          <li>Basic error pattern scan</li>
+          <li>Terminal report output</li>
+          <li>Pre-commit hook support</li>
+          <li>3 pattern categories</li>
+          <li>Community support</li>
+        </ul>
+        <a href="https://github.com/suhteevah/errorlens" class="btn btn-secondary">Install Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$19<span>/mo</span></div>
+        <ul class="price-features">
+          <li>All 90+ detection patterns</li>
+          <li>All 6 pattern categories</li>
+          <li>Watch mode (live rescan)</li>
+          <li>CI/CD integration</li>
+          <li>HTML &amp; JSON reports</li>
+          <li>Per-finding fix suggestions</li>
+          <li>Email support</li>
+        </ul>
+        <button class="btn btn-primary" onclick="checkout('pro')">Get Pro</button>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">$39<span>/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Team-wide error safety report</li>
+          <li>Baseline &amp; threshold config</li>
+          <li>SARIF output for CI</li>
+          <li>Custom rule definitions</li>
+          <li>Policy enforcement</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="btn btn-primary" style="background: #6c5ce7; box-shadow: 0 0 24px rgba(108,92,231,0.15);" onclick="checkout('team')">Get Team</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Email Signup -->
+<section style="padding: 60px 0 20px; text-align: center;">
+  <div class="container">
+    <div style="max-width: 520px; margin: 0 auto;">
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-bright);">Get notified about updates</h2>
+      <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.95rem;">No spam. One email per week max. Unsubscribe anytime.</p>
+      <div style="display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="subscribe-email" placeholder="you@company.com"
+          style="flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+          background: var(--bg-card); color: var(--text-bright); font-size: 0.95rem; font-family: var(--font);
+          outline: none; transition: border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <button id="subscribe-btn" class="btn btn-primary" style="white-space: nowrap;" onclick="subscribe()">Subscribe</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Every silent failure started with a lazy catch block</h2>
+      <p>Install ErrorLens in 30 seconds. Find every dangerous error handling pattern before your users find it for you.</p>
+      <div style="margin-top: 32px;">
+        <div class="install-bar" style="margin: 0 auto;" title="Click to copy">
+          <code>$ clawhub install errorlens</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>&copy; 2025 <a href="https://clawhub.pages.dev">ClawHub</a> &middot; <a href="https://github.com/suhteevah/errorlens">GitHub</a> &middot; <a href="mailto:support@errorlens.pages.dev">Support</a></p>
+    <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);">Zero telemetry. Your code never leaves your machine. Ever.</p>
+  </div>
+</footer>
+
+<script>
+  async function checkout(plan) {
+    const btn = event.target;
+    btn.textContent = 'Redirecting...';
+    btn.disabled = true;
+    try {
+      const prices = {
+        pro: 'price_1T2YV5A3SuLeinmVk4V2xhpJ',
+        team: 'price_1T2YV6A3SuLeinmVvsFShoWj'
+      };
+      const res = await fetch('https://license-api.clawhub-api.workers.dev/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: prices[plan],
+          skill: 'errorlens',
+          successUrl: 'https://errorlens.pages.dev/success'
+        })
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else { btn.textContent = data.error || 'Error'; btn.disabled = false; }
+    } catch (e) {
+      btn.textContent = 'Error — try again';
+      btn.disabled = false;
+    }
+  }
+
+  async function subscribe() {
+    const emailInput = document.getElementById('subscribe-email');
+    const email = emailInput.value.trim();
+    if (!email || !email.includes('@')) return;
+    const btn = document.getElementById('subscribe-btn');
+    btn.textContent = 'Subscribing...';
+    try {
+      await fetch('https://license-api.clawhub-api.workers.dev/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product: 'errorlens', source: 'landing' }),
+      });
+      btn.textContent = '\u2713 Subscribed!';
+      emailInput.value = '';
+    } catch (e) {
+      btn.textContent = 'Error';
+    }
+  }
+
+  // Copy-to-clipboard for install bars
+  document.querySelectorAll('.install-bar').forEach(bar => {
+    bar.addEventListener('click', () => {
+      navigator.clipboard.writeText('clawhub install errorlens');
+      const hint = bar.querySelector('.copy-hint');
+      if (hint) { hint.textContent = 'Copied!'; setTimeout(() => { hint.textContent = 'click to copy'; }, 2000); }
+    });
+  });
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

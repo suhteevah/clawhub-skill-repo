@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to LogSentry Pro!</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%93%9C</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0b0f;
+      --bg-card: #11131a;
+      --border: #1c1f2e;
+      --border-accent: #2d3352;
+      --text: #d8dae5;
+      --text-dim: #7c8098;
+      --text-bright: #ffffff;
+      --accent: #00b894;
+      --accent-light: #55efc4;
+      --accent-glow: rgba(0, 184, 148, 0.12);
+      --mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px;
+      max-width: 620px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: var(--text-bright);
+      margin-bottom: 8px;
+    }
+    h1 span { font-size: 2.5rem; }
+
+    p {
+      color: var(--text-dim);
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    .key-box {
+      background: #0d0d14;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 32px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      word-break: break-all;
+      color: var(--accent-light);
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .key-box:hover {
+      border-color: var(--accent-light);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .key-label {
+      font-family: var(--font);
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      text-align: left;
+    }
+
+    .copy-msg {
+      position: absolute;
+      top: -28px;
+      right: 12px;
+      background: var(--accent);
+      color: #0a0b0f;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: var(--font);
+      font-weight: 600;
+      display: none;
+    }
+
+    .steps {
+      text-align: left;
+      margin-top: 32px;
+    }
+    .steps h3 {
+      color: var(--text-bright);
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+    .step {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+    .step-num {
+      background: var(--accent);
+      color: #0a0b0f;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    code {
+      background: #0d0d14;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--accent-light);
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 32px;
+      color: var(--accent-light);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { text-decoration: underline; color: var(--text-bright); }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #loading {
+      color: var(--text-dim);
+      font-size: 1rem;
+      padding: 40px 0;
+    }
+
+    .error-box {
+      background: rgba(255, 107, 107, 0.08);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .error-box a { color: var(--accent-light); }
+
+    @media (max-width: 480px) {
+      .card { padding: 32px 20px; }
+      h1 { font-size: 1.5rem; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="card">
+    <!-- Loading state -->
+    <div id="loading">
+      <span class="loading-spinner"></span>
+      Loading your license key...
+    </div>
+
+    <!-- Success state -->
+    <div id="success" style="display:none;">
+      <h1><span>&#x1F512;</span><br>Welcome to LogSentry Pro!</h1>
+      <p>Your LogSentry license key is ready. Copy it and add it to your OpenClaw config to activate all pro features.</p>
+
+      <div class="key-box" onclick="copyKey()">
+        <div class="copy-msg" id="copyMsg">Copied!</div>
+        <div class="key-label">Your License Key (click to copy):</div>
+        <div id="licenseKey"></div>
+      </div>
+
+      <div class="steps">
+        <h3>Setup instructions:</h3>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>Copy the license key above</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>Open <code>~/.openclaw/openclaw.json</code></div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>Add: <code>"skills": { "entries": { "logsentry": { "apiKey": "YOUR_KEY" } } }</code></div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div>Run: <code>logsentry scan</code></div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div>Generate a full report: <code>logsentry report --html</code></div>
+        </div>
+      </div>
+
+      <a href="/" class="back-link">&larr; Back to LogSentry</a>
+    </div>
+
+    <!-- Error state -->
+    <div id="error" style="display:none;">
+      <h1>Something went wrong</h1>
+      <div class="error-box">
+        <p style="margin: 0; font-size: 0.9rem;">We couldn't retrieve your license key. Check your email for your license key! If you didn't receive one, please contact <a href="mailto:support@logsentry.pages.dev">support@logsentry.pages.dev</a> with your purchase receipt and we'll get it sorted.</p>
+      </div>
+      <a href="/" class="back-link">&larr; Back to LogSentry</a>
+    </div>
+  </div>
+
+  <script>
+    async function loadKey() {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+
+      if (!sessionId) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://clawhub-api.workers.dev/session/${sessionId}`);
+        if (res.ok) {
+          const { licenseKey } = await res.json();
+          document.getElementById('licenseKey').textContent = licenseKey;
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('success').style.display = 'block';
+        } else {
+          throw new Error('Failed to fetch license key');
+        }
+      } catch (e) {
+        // Fallback: show success state but with email fallback message
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('success').style.display = 'block';
+        document.getElementById('licenseKey').textContent = 'Check your email for your license key!';
+      }
+    }
+
+    function copyKey() {
+      const keyEl = document.getElementById('licenseKey');
+      const key = keyEl.textContent;
+      if (key && !key.includes('Check your email')) {
+        navigator.clipboard.writeText(key);
+        const msg = document.getElementById('copyMsg');
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 2000);
+      }
+    }
+
+    loadKey();
+  </script>
+</body>
+</html>

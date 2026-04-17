@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I18nCheck — Internationalization & Localization Readiness Scanner</title>
+  <meta name="description" content="Scan codebases for internationalization issues: hardcoded strings, missing translation keys, locale-sensitive formatting, RTL layout bugs, and more. 90+ patterns across 6 categories. 100% local. Zero telemetry.">
+  <meta property="og:title" content="I18nCheck — Internationalization & Localization Readiness Scanner">
+  <meta property="og:description" content="Your app only speaks English. Your users don't. I18nCheck finds hardcoded strings, missing translations, and locale bugs before your global users do.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://i18ncheck.pages.dev">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%8C%8D</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0b0f;
+      --bg-card: #11131a;
+      --bg-card-hover: #181b24;
+      --border: #1c1f2e;
+      --border-accent: #2d3352;
+      --text: #d8dae5;
+      --text-dim: #7c8098;
+      --text-bright: #ffffff;
+      --accent: #00cec9;
+      --accent-light: #81ecec;
+      --accent-glow: rgba(0, 206, 201, 0.12);
+      --red: #ff6b6b;
+      --red-glow: rgba(255, 107, 107, 0.12);
+      --orange: #fdcb6e;
+      --blue: #74b9ff;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font); background: var(--bg);
+      color: var(--text); line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* --- Nav ---------------------------------------- */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 11, 15, 0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border); padding: 16px 0;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { font-size: 1.25rem; font-weight: 700; color: var(--text-bright); display: flex; align-items: center; gap: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--text-dim); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-bright); text-decoration: none; }
+
+    /* --- Buttons ------------------------------------ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+      border: none; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #0a0b0f; box-shadow: 0 0 24px var(--accent-glow); }
+    .btn-primary:hover { background: #00e0db; transform: translateY(-1px); box-shadow: 0 0 40px var(--accent-glow); text-decoration: none; }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border-accent); }
+    .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent); text-decoration: none; }
+
+    /* --- Hero --------------------------------------- */
+    .hero {
+      padding: 100px 0 80px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; color: var(--text-bright);
+      line-height: 1.15; letter-spacing: -0.03em; max-width: 750px; margin: 0 auto;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { font-size: 1.2rem; color: var(--text-dim); max-width: 640px; margin: 20px auto 0; }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+
+    .install-bar {
+      display: inline-flex; align-items: center;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 20px; gap: 12px;
+      font-family: var(--mono); font-size: 0.9rem;
+      margin-top: 32px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .install-bar:hover { border-color: var(--accent); }
+    .install-bar code { color: var(--accent); }
+    .install-bar .copy-hint { color: var(--text-dim); font-size: 0.75rem; font-family: var(--font); }
+
+    /* --- Terminal ----------------------------------- */
+    .terminal {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      max-width: 740px; margin: 48px auto 0;
+      text-align: left; font-family: var(--mono); font-size: 0.8rem; line-height: 1.75;
+    }
+    .terminal-header { background: #16161f; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-body { padding: 16px 20px; }
+    .prompt { color: var(--accent); }
+    .cmd { color: var(--text-bright); }
+    .output { color: var(--text-dim); }
+    .success { color: var(--accent); }
+    .warn { color: var(--orange); }
+    .error { color: var(--red); }
+
+    /* --- Problem Section --------------------------- */
+    .problem { padding: 80px 0; text-align: center; }
+    .problem h2 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 800; color: var(--text-bright);
+      max-width: 700px; margin: 0 auto;
+    }
+    .problem h2 em { font-style: normal; color: var(--red); }
+
+    /* --- Stats bar --------------------------------- */
+    .stats {
+      padding: 40px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; text-align: center;
+    }
+    .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--accent-light); }
+    .stat-num.danger { color: var(--red); }
+    .stat-label { font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+    /* --- Features ---------------------------------- */
+    .features { padding: 80px 0; }
+    .features h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 48px; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px; transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-accent); background: var(--bg-card-hover); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .feature-tag {
+      display: inline-block; font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+      background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(0, 206, 201, 0.25);
+      border-radius: 4px; padding: 2px 8px; margin-bottom: 10px;
+    }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; }
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* --- Comparison table -------------------------- */
+    .comparison { padding: 80px 0; }
+    .comparison h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; margin-bottom: 48px; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .compare-table {
+      width: 100%; border-collapse: collapse; font-size: 0.88rem;
+      min-width: 640px;
+    }
+    .compare-table th, .compare-table td {
+      padding: 14px 16px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table thead th {
+      color: var(--text-dim); font-weight: 600; font-size: 0.8rem;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      background: var(--bg-card); position: sticky; top: 0;
+    }
+    .compare-table thead th:first-child { border-radius: 8px 0 0 0; }
+    .compare-table thead th:last-child { border-radius: 0 8px 0 0; }
+    .compare-table thead th.highlight {
+      color: var(--accent-light); border-bottom: 2px solid var(--accent);
+    }
+    .compare-table tbody td { color: var(--text-dim); }
+    .compare-table tbody td:first-child { color: var(--text); font-weight: 500; }
+    .compare-table tbody td.highlight {
+      color: var(--text-bright); background: rgba(0, 206, 201, 0.04);
+    }
+    .compare-table .yes { color: var(--accent-light); }
+    .compare-table .no { color: var(--red); }
+
+    /* --- Pricing ----------------------------------- */
+    .pricing { padding: 80px 0; }
+    .pricing h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); text-align: center; }
+    .pricing-subtitle { color: var(--text-dim); text-align: center; margin-top: 8px; font-size: 1.05rem; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-top: 48px; max-width: 1000px; margin-left: auto; margin-right: auto;
+    }
+    .price-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px;
+      display: flex; flex-direction: column; transition: border-color 0.2s;
+    }
+    .price-card:hover { border-color: var(--border-accent); }
+    .price-card.featured { border-color: var(--accent); box-shadow: 0 0 40px var(--accent-glow); position: relative; }
+    .price-card.featured::before {
+      content: 'Most Popular'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #0a0b0f; padding: 4px 16px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .price-tier { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .price-amount { font-size: 2.5rem; font-weight: 800; color: var(--text-bright); margin-top: 8px; }
+    .price-amount span { font-size: 0.9rem; font-weight: 400; color: var(--text-dim); }
+    .price-features { list-style: none; margin-top: 24px; flex-grow: 1; }
+    .price-features li { padding: 6px 0; font-size: 0.9rem; color: var(--text-dim); display: flex; align-items: flex-start; gap: 8px; }
+    .price-features li::before { content: '\2713'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .price-card .btn { margin-top: 24px; width: 100%; justify-content: center; }
+
+    /* --- CTA --------------------------------------- */
+    .cta { padding: 80px 0; text-align: center; }
+    .cta-box {
+      background: var(--bg-card); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 60px 40px;
+      box-shadow: 0 0 60px var(--accent-glow); max-width: 700px; margin: 0 auto;
+    }
+    .cta h2 { font-size: 2rem; font-weight: 700; color: var(--text-bright); }
+    .cta p { color: var(--text-dim); margin-top: 12px; font-size: 1.05rem; }
+
+    /* --- Score badge ------------------------------- */
+    .score-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--red-glow); border: 1px solid var(--red);
+      border-radius: 8px; padding: 6px 14px; margin-top: 8px;
+      font-family: var(--mono); font-size: 0.85rem;
+    }
+    .score-grade { font-weight: 800; color: var(--red); font-size: 1.1rem; }
+    .score-text { color: var(--text-dim); }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+    footer a { color: var(--accent-light); }
+
+    @media (max-width: 640px) {
+      .hero { padding: 60px 0 40px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .compare-table { font-size: 0.78rem; }
+      .compare-table th, .compare-table td { padding: 10px 10px; }
+      .nav-links { gap: 14px; }
+      .nav-links a.hide-mobile { display: none; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="nav-brand"><span>&#x1F30D;</span> I18nCheck</div>
+    <div class="nav-links">
+      <a href="#features" class="hide-mobile">Features</a>
+      <a href="#comparison" class="hide-mobile">Compare</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://github.com/suhteevah/i18ncheck">GitHub</a>
+      <a href="#pricing" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>Your app only speaks <em>English.</em> Your users don't.</h1>
+    <p>Hardcoded strings, missing translation keys, and locale-sensitive formatting bugs are alienating your global users. I18nCheck finds every internationalization issue before they do.</p>
+    <div class="hero-buttons">
+      <a href="https://github.com/suhteevah/i18ncheck" class="btn btn-secondary">Get Started Free</a>
+      <a href="#pricing" class="btn btn-primary">Get Pro</a>
+    </div>
+    <div class="install-bar" title="Click to copy">
+      <code>$ clawhub install i18ncheck</code>
+      <span class="copy-hint">click to copy</span>
+    </div>
+
+    <!-- Terminal Demo -->
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">i18ncheck scan ./src</span></div>
+        <div class="success">&#x1F30D; I18nCheck v1.0.0</div>
+        <div class="output">&nbsp;</div>
+        <div class="output">Scanning 214 files across 18 directories...</div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="cmd">src/components/Header.tsx:23</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="error">&#x2717; [HS-007] Hardcoded UI string detected</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; </span><span class="error">"Welcome back!"</span><span class="output"> should use </span><span class="success">t('header.welcome_back')</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="cmd">src/utils/format.ts:41</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="error">&#x2717; [DF-002] Locale-sensitive date formatting</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; </span><span class="error">toLocaleDateString()</span><span class="output"> without explicit locale &mdash; use </span><span class="success">Intl.DateTimeFormat(locale)</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="cmd">src/pages/Checkout.jsx:67</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="warn">&#x26A0; [SC-001] String concatenation for translated text</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; </span><span class="warn">"Total: " + price</span><span class="output"> breaks word order in RTL/agglutinative languages</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="cmd">src/layouts/Main.tsx:5</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="warn">&#x26A0; [RL-003] Missing dir attribute for RTL support</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="output">&rarr; Add </span><span class="success">dir={isRtl ? 'rtl' : 'ltr'}</span><span class="output"> to root layout element</span></div>
+        <div class="output">&nbsp;</div>
+        <div>&nbsp;&nbsp;<span class="output">&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;</span></div>
+        <div>&nbsp;&nbsp;<span class="output">i18n Score: </span><span class="error">41/100</span><span class="output"> (Grade: </span><span class="error">F</span><span class="output">)&nbsp;&nbsp;|&nbsp;&nbsp;</span><span class="error">14 critical</span>&nbsp;&nbsp;<span class="warn">8 high</span>&nbsp;&nbsp;<span style="color: var(--blue);">5 medium</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Problem Statement -->
+<section class="problem">
+  <div class="container">
+    <h2>75% of internet users <em>don't speak English.</em></h2>
+    <p style="color: var(--text-dim); margin-top: 16px; font-size: 1.05rem; max-width: 640px; margin-left: auto; margin-right: auto;">Every hardcoded string is a user you lost. Every missing translation key is a broken experience. Every locale-sensitive format bug erodes trust with your global audience. I18nCheck scans your entire codebase and gives you a clear fix for every i18n issue.</p>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div><div class="stat-num">90+</div><div class="stat-label">Detection patterns</div></div>
+      <div><div class="stat-num">6</div><div class="stat-label">Categories scanned</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">Local analysis</div></div>
+      <div><div class="stat-num">Zero</div><div class="stat-label">Telemetry</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <h2>What I18nCheck Catches</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4AC;</div>
+        <div class="feature-tag">HS</div>
+        <h3>Hardcoded UI Strings</h3>
+        <p>Detects user-facing strings that aren't wrapped in translation functions. Catches literals in JSX, templates, print statements, and view layers across all supported languages.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F511;</div>
+        <div class="feature-tag">TK</div>
+        <h3>Missing Translation Keys</h3>
+        <p>Finds translation function calls that reference keys missing from your locale files. Catches typos, stale keys, and incomplete translations before they render as broken placeholders.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4C5;</div>
+        <div class="feature-tag">DF</div>
+        <h3>Date &amp; Number Formatting</h3>
+        <p>Flags locale-sensitive date, time, number, and currency formatting that doesn't use Intl APIs or explicit locale parameters. Catches MM/DD vs DD/MM disasters.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x2194;&#xFE0F;</div>
+        <div class="feature-tag">RL</div>
+        <h3>RTL Layout Issues</h3>
+        <p>Scans for missing dir attributes, hardcoded left/right CSS, and layout patterns that break in right-to-left languages like Arabic, Hebrew, and Persian.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F517;</div>
+        <div class="feature-tag">SC</div>
+        <h3>String Concatenation</h3>
+        <p>Identifies string concatenation used to build translated messages. Concatenation breaks word order in languages with different grammar structures and agglutinative morphology.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F3F7;&#xFE0F;</div>
+        <div class="feature-tag">EN</div>
+        <h3>Missing Lang Attributes</h3>
+        <p>Checks for missing lang and xml:lang attributes on HTML elements, missing locale declarations in templates, and locale environment gaps that break screen readers and SEO.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison Table -->
+<section class="comparison" id="comparison">
+  <div class="container">
+    <h2>Without / With I18nCheck</h2>
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Without I18nCheck</th>
+            <th class="highlight">With I18nCheck</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hardcoded strings</td>
+            <td><span class="no">&#x2717;</span> Discovered by translators in production</td>
+            <td class="highlight"><span class="yes">&#x2713;</span> Caught at commit time, every file scanned</td>
+          </tr>
+          <tr>
+            <td>Missing translation keys</td>
+            <td><span class="no">&#x2717;</span> Broken placeholders visible to users</td>
+            <td class="highlight"><span class="yes">&#x2713;</span> Key coverage validated against locale files</td>
+          </tr>
+          <tr>
+            <td>Date/number formatting</td>
+            <td><span class="no">&#x2717;</span> MM/DD shows for DD/MM users</td>
+            <td class="highlight"><span class="yes">&#x2713;</span> Locale-aware Intl API usage enforced</td>
+          </tr>
+          <tr>
+            <td>RTL layout support</td>
+            <td><span class="no">&#x2717;</span> Broken layouts for Arabic/Hebrew users</td>
+            <td class="highlight"><span class="yes">&#x2713;</span> dir attributes and logical CSS validated</td>
+          </tr>
+          <tr>
+            <td>String concatenation</td>
+            <td><span class="no">&#x2717;</span> Mangled translations in non-English</td>
+            <td class="highlight"><span class="yes">&#x2713;</span> ICU MessageFormat patterns suggested</td>
+          </tr>
+          <tr>
+            <td>Lang attributes</td>
+            <td><span class="no">&#x2717;</span> Failed accessibility audits and SEO hits</td>
+            <td class="highlight"><span class="yes">&#x2713;</span> All HTML/template lang attrs verified</td>
+          </tr>
+          <tr>
+            <td>New i18n regressions</td>
+            <td><span class="no">&#x2717;</span> Slip through code review unnoticed</td>
+            <td class="highlight"><span class="yes">&#x2713;</span> Blocked by pre-commit hooks</td>
+          </tr>
+          <tr>
+            <td>CI pipeline</td>
+            <td><span class="no">&#x2717;</span> No i18n quality gate</td>
+            <td class="highlight"><span class="yes">&#x2713;</span> SARIF reports in GitHub Code Scanning</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Simple, transparent pricing</h2>
+    <p class="pricing-subtitle">Start scanning for free. Upgrade when you go global.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0</div>
+        <ul class="price-features">
+          <li>Basic i18n scan</li>
+          <li>HTML &amp; JSON reports</li>
+          <li>Pre-commit hook</li>
+          <li>Community support</li>
+        </ul>
+        <a href="https://github.com/suhteevah/i18ncheck" class="btn btn-secondary">Install Free</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$19<span>/mo</span></div>
+        <ul class="price-features">
+          <li>Unlimited file scanning</li>
+          <li>Watch mode (live re-scan)</li>
+          <li>CI integration &amp; SARIF output</li>
+          <li>All 90+ detection patterns</li>
+          <li>All 6 categories</li>
+          <li>Email support</li>
+        </ul>
+        <button class="btn btn-primary" onclick="checkout('pro')">Get Pro</button>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">$39<span>/mo</span></div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Team-wide i18n reports</li>
+          <li>Baseline &amp; trend tracking</li>
+          <li>Custom ignore rules</li>
+          <li>Multi-repo scanning</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="btn btn-primary" style="background: #6c5ce7;" onclick="checkout('team')">Get Team</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Email Signup -->
+<section style="padding: 60px 0 20px; text-align: center;">
+  <div class="container">
+    <div style="max-width: 520px; margin: 0 auto;">
+      <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-bright);">Get notified about updates</h2>
+      <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.95rem;">No spam. One email per week max. Unsubscribe anytime.</p>
+      <div style="display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="subscribe-email" placeholder="you@company.com"
+          style="flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+          background: var(--bg-card); color: var(--text-bright); font-size: 0.95rem; font-family: var(--font);
+          outline: none; transition: border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <button id="subscribe-btn" class="btn btn-primary" style="white-space: nowrap;" onclick="subscribe()">Subscribe</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Your next user speaks a language you haven't tested</h2>
+      <p>Install I18nCheck in 30 seconds. Find every hardcoded string, missing translation, and locale bug in your codebase.</p>
+      <div style="margin-top: 32px;">
+        <div class="install-bar" style="margin: 0 auto;" title="Click to copy">
+          <code>$ clawhub install i18ncheck</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>&copy; 2025 <a href="https://clawhub.pages.dev">ClawHub</a> &middot; <a href="https://github.com/suhteevah/i18ncheck">GitHub</a> &middot; <a href="mailto:support@i18ncheck.pages.dev">Support</a></p>
+    <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);">Zero telemetry. Your code never leaves your machine. Ever.</p>
+  </div>
+</footer>
+
+<script>
+  async function checkout(plan) {
+    const btn = event.target;
+    btn.textContent = 'Redirecting...';
+    btn.disabled = true;
+    const prices = { pro: 'price_1T2YV7A3SuLeinmV2V0KhoHp', team: 'price_1T2YV8A3SuLeinmVZt5p58Ke' };
+    try {
+      const res = await fetch('https://license-api.clawhub-api.workers.dev/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId: prices[plan], skill: 'i18ncheck' })
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else { btn.textContent = data.error || 'Error'; btn.disabled = false; }
+    } catch (e) {
+      btn.textContent = 'Error \u2014 try again';
+      btn.disabled = false;
+    }
+  }
+
+  async function subscribe() {
+    const emailInput = document.getElementById('subscribe-email');
+    const email = emailInput.value.trim();
+    if (!email || !email.includes('@')) return;
+    const btn = document.getElementById('subscribe-btn');
+    btn.textContent = 'Subscribing...';
+    try {
+      await fetch('https://license-api.clawhub-api.workers.dev/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, skill: 'i18ncheck', source: 'landing' }),
+      });
+      btn.textContent = '\u2713 Subscribed!';
+      emailInput.value = '';
+    } catch (e) {
+      btn.textContent = 'Error';
+    }
+  }
+
+  // Copy-to-clipboard for install bars
+  document.querySelectorAll('.install-bar').forEach(bar => {
+    bar.addEventListener('click', () => {
+      navigator.clipboard.writeText('clawhub install i18ncheck');
+      const hint = bar.querySelector('.copy-hint');
+      if (hint) { hint.textContent = 'Copied!'; setTimeout(() => { hint.textContent = 'click to copy'; }, 2000); }
+    });
+  });
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
