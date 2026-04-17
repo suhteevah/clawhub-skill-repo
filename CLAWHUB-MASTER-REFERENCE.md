@@ -46,7 +46,7 @@
 ### Worker Secrets (set via `wrangler secret put`)
 
 ```
-STRIPE_SECRET_KEY          # sk_live_51T0qGz...
+STRIPE_SECRET_KEY          # sk_live_REDACTED
 STRIPE_WEBHOOK_SECRET      # whsec_...
 JWT_SECRET                 # Signing key for offline JWT license tokens
 ADMIN_SECRET               # For /subscribers endpoint auth
