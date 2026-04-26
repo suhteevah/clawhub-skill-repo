@@ -1,6 +1,6 @@
 ---
 name: RateLint
-version: 1.0.0
+version: 1.0.1
 description: "Rate limiting & API throttling anti-pattern analyzer -- detects missing rate limits, brute force exposure, no backoff strategies, unbounded queues, retry storm vulnerability, and flow control gaps"
 homepage: https://ratelint.pages.dev
 metadata:

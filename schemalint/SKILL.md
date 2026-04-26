@@ -1,6 +1,6 @@
 ---
 name: SchemaLint
-version: 1.0.0
+version: 1.0.1
 description: "Database schema & query anti-pattern analyzer -- detects missing indexes, type safety issues, naming violations, constraint gaps, dangerous query patterns, and unsafe migration practices"
 homepage: https://schemalint.pages.dev
 metadata:
